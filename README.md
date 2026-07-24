@@ -2,6 +2,13 @@
 
 基于AI的电脑配置推荐系统，支持实时价格查询。
 
+## 界面预览
+
+| | | |
+|---|---|---|
+| ![截图1](demo/screenshot-1.png) | ![截图2](demo/screenshot-2.png) | ![截图3](demo/screenshot-3.png) |
+| ![截图4](demo/screenshot-4.png) | | |
+
 ## 演示视频
 
 ![演示视频](demo/demo.gif)
