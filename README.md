@@ -5,18 +5,18 @@
 ## 界面预览
 
 <p align="center">
-  <img src="demo/screenshot-1.png" width="48%" />
-  <img src="demo/screenshot-2.png" width="48%" />
+  <img src="https://raw.githubusercontent.com/kisszz666/ai-combud/main/demo/screenshot-1.png" width="45%" alt="截图1" />
+  <img src="https://raw.githubusercontent.com/kisszz666/ai-combud/main/demo/screenshot-2.png" width="45%" alt="截图2" />
 </p>
 <p align="center">
-  <img src="demo/screenshot-3.png" width="48%" />
-  <img src="demo/screenshot-4.png" width="48%" />
+  <img src="https://raw.githubusercontent.com/kisszz666/ai-combud/main/demo/screenshot-3.png" width="45%" alt="截图3" />
+  <img src="https://raw.githubusercontent.com/kisszz666/ai-combud/main/demo/screenshot-4.png" width="45%" alt="截图4" />
 </p>
 
 ## 演示视频
 
 <p align="center">
-  <img src="demo/demo.gif" width="60%" />
+  <img src="https://raw.githubusercontent.com/kisszz666/ai-combud/main/demo/demo.gif" width="60%" alt="演示视频" />
 </p>
 
 > 📹 点击观看完整视频：[demo/demo.mp4](demo/demo.mp4)
