@@ -4,20 +4,14 @@
 
 ## 界面预览
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/kisszz666/ai-combud/main/demo/screenshot-1.png" width="45%" alt="截图1" />
-  <img src="https://raw.githubusercontent.com/kisszz666/ai-combud/main/demo/screenshot-2.png" width="45%" alt="截图2" />
-</p>
-<p align="center">
-  <img src="https://raw.githubusercontent.com/kisszz666/ai-combud/main/demo/screenshot-3.png" width="45%" alt="截图3" />
-  <img src="https://raw.githubusercontent.com/kisszz666/ai-combud/main/demo/screenshot-4.png" width="45%" alt="截图4" />
-</p>
+<img width="48%" src="https://github.com/kisszz666/ai-combud/blob/main/demo/screenshot-1.png?raw=true" />
+<img width="48%" src="https://github.com/kisszz666/ai-combud/blob/main/demo/screenshot-2.png?raw=true" />
+<img width="48%" src="https://github.com/kisszz666/ai-combud/blob/main/demo/screenshot-3.png?raw=true" />
+<img width="48%" src="https://github.com/kisszz666/ai-combud/blob/main/demo/screenshot-4.png?raw=true" />
 
 ## 演示视频
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/kisszz666/ai-combud/main/demo/demo.gif" width="60%" alt="演示视频" />
-</p>
+<img width="60%" src="https://github.com/kisszz666/ai-combud/blob/main/demo/demo.gif?raw=true" />
 
 > 📹 点击观看完整视频：[demo/demo.mp4](demo/demo.mp4)
 
