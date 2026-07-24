@@ -4,14 +4,20 @@
 
 ## 界面预览
 
-| | | |
-|---|---|---|
-| ![截图1](demo/screenshot-1.png) | ![截图2](demo/screenshot-2.png) | ![截图3](demo/screenshot-3.png) |
-| ![截图4](demo/screenshot-4.png) | | |
+<p align="center">
+  <img src="demo/screenshot-1.png" width="48%" />
+  <img src="demo/screenshot-2.png" width="48%" />
+</p>
+<p align="center">
+  <img src="demo/screenshot-3.png" width="48%" />
+  <img src="demo/screenshot-4.png" width="48%" />
+</p>
 
 ## 演示视频
 
-![演示视频](demo/demo.gif)
+<p align="center">
+  <img src="demo/demo.gif" width="60%" />
+</p>
 
 > 📹 点击观看完整视频：[demo/demo.mp4](demo/demo.mp4)
 
