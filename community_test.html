@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>电脑社区 - 智能电脑配置生成系统</title>
+<style>
+/* ============================================================
+   GLOBAL — 锐利硬核赛博科技风 (与主页统一)
+   ============================================================ */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --bg:        #0D0D18;
+  --bg-panel:  #0F0F1F;
+  --bg-input:  #080814;
+  --bg-hover:  rgba(123,47,253,0.04);
+  --purple:    #7B2FFD;
+  --purple-b:  #5B21B6;
+  --green:     #00FFA3;
+  --green-dim: #00C870;
+  --text:      #E2DCF0;
+  --text-dim:  #8A82A8;
+  --text-weak: #5A5470;
+  --border:    #2A2240;
+  --border-hi: #4A3A6A;
+  --font:      'Inter','JetBrains Mono','PingFang SC','Microsoft YaHei',monospace;
+  --tf:        0.16s ease;
+  --c1: #FF6B5B; --c2: #FF9A40; --c3: #FFD84D; --c4: #00FFA3; --c5: #40C8FF; --c6: #7B2FFD;
+}
+html { font-size:16px; }
+body { font-family:var(--font); background:var(--bg); color:var(--text); min-height:100vh; position:relative; overflow-x:hidden; }
+
+/* 精密网格 */
+body::before { content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background: linear-gradient(rgba(123,47,253,0.045) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(123,47,253,0.045) 1px, transparent 1px);
+  background-size:40px 40px; }
+/* 斜向光带 */
+body::after { content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background: linear-gradient(135deg, rgba(123,47,253,0.07) 0%, transparent 25%),
+              linear-gradient(315deg, rgba(0,255,163,0.03) 0%, transparent 30%),
+              repeating-linear-gradient(45deg, transparent, transparent 180px, rgba(123,47,253,0.015) 180px, rgba(123,47,253,0.015) 182px); }
+
+/* ============================================================
+   SHELL — 全屏控制台
+   ============================================================ */
+.console { position:relative; z-index:1; display:flex; flex-direction:column; min-height:100vh; }
+
+/* 顶部通栏 */
+.topbar { display:flex; align-items:center; justify-content:space-between; padding:16px 32px; border-bottom:2px solid var(--border); position:relative; flex-wrap:wrap; gap:10px; }
+.topbar::after { content:''; position:absolute; bottom:-2px; left:0; width:200px; height:2px; background:linear-gradient(90deg,var(--green),var(--purple)); }
+.tb-left h1 { font-size:1.55rem; font-weight:800; letter-spacing:2px; background:linear-gradient(135deg,#C8B8FF 0%,var(--purple) 45%,var(--green) 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; line-height:1.15; }
+.tb-left .sub { font-size:0.7rem; color:var(--text-dim); letter-spacing:3px; text-transform:uppercase; }
+.tb-right { display:flex; gap:24px; align-items:center; }
+.tb-stat { text-align:center; }
+.tb-stat .val { font-size:0.9rem; font-weight:700; color:var(--green); letter-spacing:1px; }
+.tb-stat .lbl { font-size:0.62rem; color:var(--text-dim); letter-spacing:2px; text-transform:uppercase; }
+
+/* 导航按钮 */
+.nav-btns { display:flex; gap:0; margin-right:16px; }
+.nav-btn { padding:10px 24px; font-size:0.82rem; font-weight:700; letter-spacing:2px; cursor:pointer; font-family:var(--font); text-decoration:none; background:var(--bg-input); border:1px solid var(--border); color:var(--text-dim); transition:all var(--tf); position:relative; }
+.nav-btn:first-child { border-radius:4px 0 0 4px; }
+.nav-btn:last-child { border-radius:0 4px 4px 0; }
+.nav-btn:hover { border-color:var(--purple); color:var(--text); }
+.nav-btn.active { border-color:var(--green); color:#fff; background:rgba(0,255,163,0.06); box-shadow:inset 0 0 0 1px var(--green); z-index:1; }
+.nav-btn.active::after { content:''; position:absolute; bottom:0; left:0; right:0; height:2px; background:var(--green); box-shadow:0 0 8px var(--green); }
+
+/* ============================================================
+   主体 — 帖子列表区
+   ============================================================ */
+.main-area { flex:1; padding:20px 32px; max-width:960px; margin:0 auto; width:100%; }
+
+/* 社区头部信息栏 */
+.community-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:12px; }
+.community-header .ch-info { display:flex; align-items:center; gap:12px; }
+.community-header .ch-dot { width:8px; height:8px; background:var(--green); box-shadow:0 0 8px var(--green); animation:pulse-dot 2s ease-in-out infinite; }
+@keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.community-header .ch-title { font-size:1.1rem; font-weight:800; letter-spacing:3px; color:var(--text); }
+.community-header .ch-count { font-size:0.7rem; color:var(--text-dim); letter-spacing:2px; }
+.btn-refresh { padding:9px 24px; font-size:0.74rem; font-weight:700; letter-spacing:2px; cursor:pointer; font-family:var(--font); background:var(--bg-input); border:1px solid var(--border); color:var(--text-dim); transition:all var(--tf); }
+.btn-refresh:hover { border-color:var(--purple); color:var(--text); }
+.btn-refresh.spinning { pointer-events:none; opacity:0.6; }
+.btn-refresh .icon-refresh { display:inline-block; transition:transform 0.6s ease; }
+.btn-refresh.spinning .icon-refresh { animation:spin 0.8s linear infinite; }
+@keyframes spin { to{transform:rotate(360deg)} }
+
+/* 状态提示 */
+.status-bar { text-align:center; padding:6px 0; margin-bottom:12px; font-size:0.65rem; color:var(--text-weak); letter-spacing:2px; }
+
+/* ============================================================
+   帖子卡片
+   ============================================================ */
+.post-card { background:var(--bg-panel); border:1px solid var(--border); position:relative; margin-bottom:20px; transition:all var(--tf); }
+.post-card::before { content:''; position:absolute; top:-1px; left:-1px; width:16px; height:16px; border-top:2px solid var(--purple); border-left:2px solid var(--purple); }
+.post-card::after  { content:''; position:absolute; bottom:-1px; right:-1px; width:16px; height:16px; border-bottom:2px solid var(--purple); border-right:2px solid var(--purple); }
+.post-card:hover { border-color:var(--border-hi); }
+
+/* 卡片头部 */
+.pc-header { display:flex; align-items:center; justify-content:space-between; padding:16px 20px 10px; border-bottom:1px solid var(--border); flex-wrap:wrap; gap:8px; }
+.pc-author { display:flex; align-items:center; gap:10px; }
+.pc-avatar { width:36px; height:36px; border-radius:2px; background:linear-gradient(135deg,var(--purple-b),var(--purple)); display:flex; align-items:center; justify-content:center; font-size:0.85rem; font-weight:700; color:#fff; letter-spacing:1px; flex-shrink:0; }
+.pc-author-name { font-size:0.88rem; font-weight:700; color:var(--text); letter-spacing:1px; }
+.pc-time { font-size:0.65rem; color:var(--text-weak); letter-spacing:1px; }
+
+/* 卡片主体 */
+.pc-body { padding:18px 20px; }
+.pc-title { font-size:1.05rem; font-weight:700; color:#fff; margin-bottom:12px; letter-spacing:1px; line-height:1.4; }
+.pc-content { font-size:0.88rem; color:var(--text-dim); line-height:1.75; white-space:pre-wrap; word-break:break-word; }
+
+/* 图片网格 */
+.pc-images { display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:10px; margin-top:16px; }
+.pc-images.single { grid-template-columns:minmax(0, 400px); }
+.pc-images img { width:100%; height:auto; max-height:320px; object-fit:cover; border:1px solid var(--border); cursor:pointer; transition:all var(--tf); background:var(--bg-input); }
+.pc-images img:hover { border-color:var(--purple); transform:scale(1.02); box-shadow:0 0 16px rgba(123,47,253,0.3); }
+
+/* 图片查看器 (lightbox) */
+.lightbox { display:none; position:fixed; inset:0; z-index:999; background:rgba(0,0,0,0.92); justify-content:center; align-items:center; cursor:pointer; }
+.lightbox.show { display:flex; }
+.lightbox img { max-width:92vw; max-height:92vh; object-fit:contain; border:1px solid var(--border-hi); box-shadow:0 0 40px rgba(123,47,253,0.2); }
+.lightbox .lb-close { position:absolute; top:20px; right:30px; font-size:2rem; color:var(--text-dim); cursor:pointer; z-index:1000; transition:color var(--tf); }
+.lightbox .lb-close:hover { color:var(--c1); }
+
+/* 卡片底部统计 */
+.pc-footer { display:flex; align-items:center; gap:16px; padding:10px 20px; border-top:1px solid var(--border); font-size:0.7rem; color:var(--text-weak); letter-spacing:1px; }
+.pc-stat-item { display:flex; align-items:center; gap:4px; cursor:default; }
+.pc-stat-item .si-icon { font-size:0.9rem; }
+
+/* ============================================================
+   评论区
+   ============================================================ */
+.replies-section { border-top:1px solid var(--border); padding:12px 20px 16px; }
+.replies-toggle { display:flex; align-items:center; gap:6px; font-size:0.7rem; color:var(--text-dim); letter-spacing:2px; cursor:pointer; padding:4px 0; transition:color var(--tf); }
+.replies-toggle:hover { color:var(--green); }
+.replies-toggle .arrow { display:inline-block; transition:transform var(--tf); font-size:0.6rem; }
+.replies-toggle.open .arrow { transform:rotate(90deg); }
+.replies-list { display:none; margin-top:10px; }
+.replies-list.show { display:block; }
+.reply-item { padding:10px 12px; margin-bottom:6px; background:var(--bg-input); border-left:2px solid var(--border); transition:border-color var(--tf); }
+.reply-item:hover { border-left-color:var(--purple); }
+.reply-item .ri-header { display:flex; align-items:center; gap:8px; margin-bottom:4px; flex-wrap:wrap; }
+.reply-item .ri-author { font-size:0.74rem; font-weight:700; color:var(--text); letter-spacing:1px; }
+.reply-item .ri-time { font-size:0.6rem; color:var(--text-weak); letter-spacing:1px; }
+.reply-item .ri-content { font-size:0.8rem; color:var(--text-dim); line-height:1.6; white-space:pre-wrap; word-break:break-word; }
+.no-replies { font-size:0.68rem; color:var(--text-weak); letter-spacing:2px; text-align:center; padding:8px; }
+
+/* ============================================================
+   加载 / 空状态
+   ============================================================ */
+.loading-state { text-align:center; padding:80px 20px; }
+.loading-state .spinner { width:40px; height:40px; margin:0 auto 20px; border:2px solid var(--border); border-top-color:var(--green); border-radius:50%; animation:spin 0.8s linear infinite; }
+.loading-state .loading-text { font-size:0.8rem; color:var(--text-dim); letter-spacing:3px; }
+.empty-state { text-align:center; padding:60px 20px; }
+.empty-state .empty-icon { font-size:3rem; margin-bottom:16px; }
+.empty-state .empty-text { font-size:0.85rem; color:var(--text-dim); letter-spacing:2px; margin-bottom:8px; }
+.empty-state .empty-hint { font-size:0.68rem; color:var(--text-weak); letter-spacing:1px; }
+
+/* ============================================================
+   底部状态栏
+   ============================================================ */
+.bottombar { display:flex; align-items:center; justify-content:space-between; padding:8px 32px; border-top:1px solid var(--border); font-size:0.62rem; color:var(--text-weak); letter-spacing:2px; margin-top:auto; }
+.bottombar .bt-tags { display:flex; gap:14px; }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width:768px) {
+  .main-area { padding:12px 10px; }
+  .topbar { padding:12px 16px; }
+  .nav-btns { margin-right:0; }
+  .nav-btn { padding:8px 14px; font-size:0.72rem; letter-spacing:1px; }
+  .pc-images { grid-template-columns:1fr; }
+  .pc-header { flex-direction:column; align-items:flex-start; }
+}
+</style>
+</head>
+<body>
+
+<div class="console">
+
+  <!-- ========== 顶部通栏 ========== -->
+  <header class="topbar">
+    <div class="tb-left">
+      <h1>智能电脑配置生成系统</h1>
+      <div class="sub">AI-Powered PC Configurator</div>
+    </div>
+    <div class="tb-right">
+      <div class="nav-btns">
+        <a href="index.html" class="nav-btn">⚡ 智能生成</a>
+        <a href="community.html" class="nav-btn active">💬 电脑社区</a>
+      </div>
+      <div class="tb-stat"><div class="val" id="postCount">--</div><div class="lbl">社区帖子</div></div>
+      <div class="tb-stat"><div class="val">电脑吧</div><div class="lbl">数据来源</div></div>
+    </div>
+  </header>
+
+  <!-- ========== 主体 ========== -->
+  <div class="main-area">
+
+    <!-- 社区头部 -->
+    <div class="community-header">
+      <div class="ch-info">
+        <div class="ch-dot"></div>
+        <span class="ch-title">电脑社区</span>
+        <span class="ch-count" id="cacheInfo"></span>
+      </div>
+      <button class="btn-refresh" id="btnRefresh" onclick="refreshData()" title="从电脑吧实时抓取最新帖子">
+        <span class="icon-refresh">↻</span> 刷新数据
+      </button>
+    </div>
+
+    <!-- 状态提示 -->
+    <div class="status-bar" id="statusBar">正在连接后端服务...</div>
+
+    <!-- 帖子列表容器 -->
+    <div id="postList"></div>
+
+  </div>
+
+  <!-- ========== 底部状态栏 ========== -->
+  <footer class="bottombar">
+    <span>COMMUNITY ONLINE</span>
+    <div class="bt-tags">
+      <span>实时爬取</span><span>电脑吧</span><span>图片加载</span><span>评论解析</span>
+    </div>
+    <span>READY</span>
+  </footer>
+
+</div>
+
+<!-- 图片查看器 -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <span class="lb-close">✕</span>
+  <img id="lightboxImg" src="" alt="预览">
+</div>
+
+<!-- ============================================================
+     SCRIPT
+     ============================================================ -->
+<script>
+// ============ 配置 ============
+const API_BASE = 'http://localhost:8000';
+
+// ============ 状态 ============
+let allPosts = [];
+let pollTimer = null;
+
+// ============ 加载帖子（秒级响应）============
+async function loadPosts() {
+  const listEl = document.getElementById('postList');
+  const statusEl = document.getElementById('statusBar');
+
+  listEl.innerHTML = `
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <div class="loading-text">正在加载社区内容...</div>
+    </div>`;
+  statusEl.textContent = '正在获取数据...';
+
+  try {
+    const resp = await fetch(`${API_BASE}/api/community/posts?limit=20`);
+    const data = await resp.json();
+
+    if (data.success && data.posts && data.posts.length > 0) {
+      allPosts = data.posts;
+      renderPosts(data.posts);
+      document.getElementById('postCount').textContent = data.total || data.posts.length;
+
+      // 数据来源标识
+      const cacheEl = document.getElementById('cacheInfo');
+      if (data.source === 'scraped') {
+        cacheEl.textContent = '· 来自贴吧实时数据';
+        cacheEl.style.color = 'var(--green)';
+      } else {
+        cacheEl.textContent = '· 暂无数据，请点击刷新获取';
+        cacheEl.style.color = 'var(--c2)';
+      }
+
+      // 如果正在后台爬取，显示进度
+      if (data.scraping) {
+        statusEl.textContent = `⏳ 后台爬取中: ${data.scrape_progress || ''}`;
+        statusEl.style.color = 'var(--c2)';
+        startPollingStatus();
+      } else if (data.scrape_message) {
+        statusEl.textContent = data.scrape_message;
+        statusEl.style.color = 'var(--text-weak)';
+      } else {
+        statusEl.textContent = `共 ${data.posts.length} 个帖子 · 来源: 百度贴吧「电脑吧」`;
+        statusEl.style.color = 'var(--text-weak)';
+      }
+    } else {
+      listEl.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">📭</div>
+          <div class="empty-text">暂无社区帖子</div>
+          <div class="empty-hint">请点击"刷新数据"按钮从电脑吧获取最新帖子</div>
+        </div>`;
+      statusEl.textContent = '暂无数据 · 请刷新';
+    }
+  } catch (err) {
+    console.error('加载失败:', err);
+    listEl.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">⚠️</div>
+        <div class="empty-text">无法连接后端服务</div>
+        <div class="empty-hint">请确认后端已启动:<br>cd ${window.location.hostname === 'localhost' ? '项目目录' : 'c:\\project5\\fianl4'}<br>python backend/main.py</div>
+      </div>`;
+    statusEl.textContent = '连接失败 · 请检查后端服务';
+    document.getElementById('postCount').textContent = '--';
+  }
+}
+
+// ============ 刷新数据（触发后台爬取 + 轮询）============
+async function refreshData(forceReset = false) {
+  const btnRefresh = document.getElementById('btnRefresh');
+  const statusEl = document.getElementById('statusBar');
+
+  btnRefresh.classList.add('spinning');
+  statusEl.textContent = forceReset ? '正在强制重置卡死状态...' : '正在启动后台爬取...';
+  statusEl.style.color = 'var(--c2)';
+
+  try {
+    let url = `${API_BASE}/api/community/refresh?limit=20`;
+    if (forceReset) url += '&force=true';
+    const resp = await fetch(url, { method: 'POST' });
+    const data = await resp.json();
+
+    if (data.success) {
+      statusEl.textContent = '⏳ ' + data.message;
+      startPollingStatus();
+    } else {
+      // 如果爬取已在运行中，显示强制重置选项
+      if (data.message && data.message.includes('已在运行中')) {
+        statusEl.innerHTML = '⚠ ' + data.message + ' <a href="javascript:void(0)" onclick="refreshData(true)" style="color:var(--green);text-decoration:underline;cursor:pointer;">[点击强制重置]</a>';
+        statusEl.style.color = 'var(--c2)';
+      } else {
+        statusEl.textContent = data.message || '启动爬取失败';
+        statusEl.style.color = 'var(--c1)';
+      }
+      btnRefresh.classList.remove('spinning');
+    }
+  } catch (err) {
+    console.error('刷新失败:', err);
+    statusEl.textContent = '网络错误 · 请确认后端已启动';
+    statusEl.style.color = 'var(--c1)';
+    btnRefresh.classList.remove('spinning');
+  }
+}
+
+// ============ 轮询爬取状态 ============
+function startPollingStatus() {
+  if (pollTimer) clearInterval(pollTimer);
+
+  const statusEl = document.getElementById('statusBar');
+  const btnRefresh = document.getElementById('btnRefresh');
+  let pollCount = 0;
+  const MAX_POLL = 90; // 最多轮询 90 次
+
+  pollTimer = setInterval(async () => {
+    pollCount++;
+    try {
+      const resp = await fetch(`${API_BASE}/api/community/status`);
+      const s = await resp.json();
+
+      if (s.running) {
+        statusEl.textContent = `⏳ ${s.progress || '爬取中...'} (${pollCount}s)`;
+        statusEl.style.color = 'var(--c2)';
+        btnRefresh.classList.add('spinning');
+      } else if (s.result === 'ok') {
+        // 爬取完成 → 停止轮询 → 重新加载数据
+        clearInterval(pollTimer);
+        pollTimer = null;
+        btnRefresh.classList.remove('spinning');
+        statusEl.textContent = '✅ ' + (s.message || '爬取完成，正在刷新列表...');
+        statusEl.style.color = 'var(--green)';
+        // 重新加载帖子（现在会读到新的 posts.json）
+        setTimeout(() => loadPosts(), 500);
+      } else if (s.result === 'security_blocked') {
+        // 被安全验证拦截
+        clearInterval(pollTimer);
+        pollTimer = null;
+        btnRefresh.classList.remove('spinning');
+        statusEl.innerHTML = `🔒 ${s.message || '触发安全验证'} <a href="javascript:void(0)" onclick="runSeleniumMode()" style="color:var(--green);text-decoration:underline;margin-left:8px;">[使用浏览器模式重试]</a>`;
+        statusEl.style.color = 'var(--c1)';
+      } else if (s.result === 'empty') {
+        // 无数据
+        clearInterval(pollTimer);
+        pollTimer = null;
+        btnRefresh.classList.remove('spinning');
+        statusEl.textContent = '📭 ' + (s.message || '未获取到数据');
+        statusEl.style.color = 'var(--c1)';
+      } else if (s.result === 'error') {
+        clearInterval(pollTimer);
+        pollTimer = null;
+        btnRefresh.classList.remove('spinning');
+        statusEl.textContent = '❌ ' + (s.message || '爬取出错');
+        statusEl.style.color = 'var(--c1)';
+      }
+
+      if (pollCount >= MAX_POLL) {
+        clearInterval(pollTimer);
+        pollTimer = null;
+        btnRefresh.classList.remove('spinning');
+        statusEl.innerHTML = '⚠ 爬取超时 <a href="javascript:void(0)" onclick="runSeleniumMode()" style="color:var(--green);text-decoration:underline;margin-left:8px;">[使用浏览器模式]</a>';
+        statusEl.style.color = 'var(--c1)';
+      }
+    } catch (e) {
+      // 轮询出错不中断
+    }
+  }, 1000);
+
+// 使用 Selenium 模式重试
+async function runSeleniumMode() {
+  const btnRefresh = document.getElementById('btnRefresh');
+  const statusEl = document.getElementById('statusBar');
+  
+  statusEl.textContent = '🔄 正在使用浏览器模式重试...';
+  statusEl.style.color = 'var(--c2)';
+  
+  try {
+    const resp = await fetch(`${API_BASE}/api/community/refresh?limit=20&mode=selenium&force=true`, { method: 'POST' });
+    const data = await resp.json();
+    
+    if (data.success) {
+      statusEl.textContent = '🚀 ' + data.message;
+      startPollingStatus();
+    } else {
+      statusEl.textContent = '❌ ' + data.message;
+      statusEl.style.color = 'var(--c1)';
+    }
+  } catch (err) {
+    statusEl.textContent = '❌ 启动失败：' + err.message;
+    statusEl.style.color = 'var(--c1)';
+  }
+}
+
+// ============ 渲染帖子列表 ============
+function renderPosts(posts) {
+  const listEl = document.getElementById('postList');
+  if (!posts || posts.length === 0) {
+    listEl.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">📭</div>
+        <div class="empty-text">暂无帖子</div>
+      </div>`;
+    return;
+  }
+
+  listEl.innerHTML = posts.map((post, idx) => {
+    const avatarChar = (post.author || '匿')[0];
+    const imagesHtml = renderImages(post.images || []);
+    const repliesHtml = renderReplies(post.replies || [], post.tid || idx);
+
+    return `
+      <article class="post-card">
+        <div class="pc-header">
+          <div class="pc-author">
+            <div class="pc-avatar">${esc(avatarChar)}</div>
+            <div>
+              <div class="pc-author-name">${esc(post.author || '匿名用户')}</div>
+              <div class="pc-time">${esc(post.post_time || post.list_date || '')}</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;">
+            <span style="font-size:0.68rem;color:var(--text-weak);letter-spacing:2px;">#${post.index || idx + 1}</span>
+          </div>
+        </div>
+
+        <div class="pc-body">
+          ${post.title ? `<div class="pc-title">${esc(post.title)}</div>` : ''}
+          ${post.content ? `<div class="pc-content">${esc(post.content)}</div>` : '<div class="pc-content" style="color:var(--text-weak);">（无文字内容）</div>'}
+          ${imagesHtml}
+        </div>
+
+        <div class="pc-footer">
+          <div class="pc-stat-item"><span class="si-icon">👍</span> ${post.like_count || 0} 赞</div>
+          <div class="pc-stat-item"><span class="si-icon">💬</span> ${post.reply_count || 0} 回复</div>
+          <div class="pc-stat-item"><span class="si-icon">🖼</span> ${(post.images || []).length} 图</div>
+        </div>
+
+        ${repliesHtml}
+      </article>
+    `;
+  }).join('');
+}
+
+// ============ 渲染图片 ============
+function renderImages(images) {
+  if (!images || images.length === 0) return '';
+  const gridClass = images.length === 1 ? 'pc-images single' : 'pc-images';
+  const imgs = images.map((url, i) => {
+    // 使用原始 URL（百度图床带令牌地址可直接引用）
+    const imgUrl = url.startsWith('http') ? url : `http://localhost:8000/community-images/${url}`;
+    return `<img src="${esc(imgUrl)}" alt="图片${i+1}" loading="lazy"
+      onclick="event.stopPropagation();openLightbox('${esc(imgUrl)}')"
+      onerror="this.parentElement.removeChild(this);">`;
+  }).join('');
+  return `<div class="${gridClass}">${imgs}</div>`;
+}
+
+// ============ 渲染评论 ============
+function renderReplies(replies, postId) {
+  if (!replies || replies.length === 0) {
+    return `
+      <div class="replies-section">
+        <div class="replies-toggle" onclick="toggleReplies(this)">
+          <span class="arrow">▶</span> 查看评论 (0)
+        </div>
+        <div class="replies-list">
+          <div class="no-replies">-- 暂无评论 --</div>
+        </div>
+      </div>`;
+  }
+
+  const repliesListHtml = replies.map(r => `
+    <div class="reply-item">
+      <div class="ri-header">
+        <span class="ri-author">${esc(r.author || '匿名')}</span>
+        ${r.time ? `<span class="ri-time">${esc(r.time)}</span>` : ''}
+      </div>
+      <div class="ri-content">${esc(r.content || '')}</div>
+    </div>
+  `).join('');
+
+  return `
+    <div class="replies-section">
+      <div class="replies-toggle" onclick="toggleReplies(this)">
+        <span class="arrow">▶</span> 查看评论 (${replies.length})
+      </div>
+      <div class="replies-list">
+        ${repliesListHtml}
+      </div>
+    </div>`;
+}
+
+// ============ 评论折叠/展开 ============
+function toggleReplies(toggleEl) {
+  toggleEl.classList.toggle('open');
+  const list = toggleEl.nextElementSibling;
+  if (list) {
+    list.classList.toggle('show');
+  }
+}
+
+// ============ 图片灯箱 ============
+function openLightbox(src) {
+  const lb = document.getElementById('lightbox');
+  const img = document.getElementById('lightboxImg');
+  img.src = src;
+  lb.classList.add('show');
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('show');
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeLightbox();
+});
+
+// ============ 工具函数 ============
+function esc(s) {
+  if (!s) return '';
+  const d = document.createElement('div');
+  d.textContent = String(s);
+  return d.innerHTML;
+}
+
+// ============ 定时刷新缓存信息 ============
+function updateCacheInfo() {
+  const el = document.getElementById('cacheInfo');
+  // 如果页面已有缓存年龄信息，不做额外更新；交给 loadPosts 处理
+}
+
+// ============ 初始化 ============
+loadPosts();
+
+// 页面关闭时清理轮询
+window.addEventListener('beforeunload', () => {
+  if (pollTimer) clearInterval(pollTimer);
+});
+</script>
+
+</body>
+</html>

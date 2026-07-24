@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="no-referrer">
+<title>配置结果 - 智能电脑配置生成系统</title>
+<style>
+/* ============================================================
+   GLOBAL — 锐利硬核赛博科技风 (与主页统一)
+   ============================================================ */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0D0D18;--bg-panel:#0F0F1F;--bg-input:#080814;--bg-hover:rgba(123,47,253,0.04);
+  --purple:#7B2FFD;--purple-b:#5B21B6;--green:#00FFA3;--green-dim:#00C870;
+  --text:#E2DCF0;--text-dim:#8A82A8;--text-weak:#5A5470;--border:#2A2240;--border-hi:#4A3A6A;
+  --font:'Inter','JetBrains Mono','PingFang SC','Microsoft YaHei',monospace;--tf:0.16s ease;
+  --c1:#FF6B5B;--c2:#FF9A40;--c3:#FFD84D;--c4:#00FFA3;--c5:#40C8FF;--c6:#7B2FFD;
+}
+html{font-size:16px}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;position:relative;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:linear-gradient(rgba(123,47,253,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(123,47,253,.045) 1px,transparent 1px);background-size:40px 40px}
+body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:linear-gradient(135deg,rgba(123,47,253,.07) 0%,transparent 25%),linear-gradient(315deg,rgba(0,255,163,.03) 0%,transparent 30%)}
+
+/* ============================================================
+   底层背景 — 波浪渐变 + 升腾粒子
+   ============================================================ */
+.bg-layer { position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+.bg-layer .bg-waves { position:absolute; width:200%; height:100%; left:0; top:0; will-change:transform; }
+.bg-layer .bg-waves.w2 { top:35px; opacity:0.55; }
+.bg-layer .bg-waves.w3 { top:-25px; opacity:0.35; }
+
+/* 粒子 */
+.bg-particle { position:absolute; border-radius:50%; pointer-events:none;
+  animation:particleRise linear forwards; box-shadow:0 0 6px currentColor; }
+@keyframes particleRise {
+  0%   { transform:translateY(0) scale(1);   opacity:0.9; }
+  30%  { opacity:0.6; }
+  100% { transform:translateY(-420px) scale(0.15); opacity:0; }
+}
+
+/* ============================================================
+   SHELL
+   ============================================================ */
+.console{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column}
+
+/* 顶部通栏 */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 32px;border-bottom:2px solid var(--border);position:relative;flex-wrap:wrap;gap:10px}
+.topbar::after{content:'';position:absolute;bottom:-2px;left:0;width:200px;height:2px;background:linear-gradient(90deg,var(--green),var(--purple))}
+.tb-left h1{font-size:1.5rem;font-weight:800;letter-spacing:2px;background:linear-gradient(135deg,#C8B8FF 0%,var(--purple) 45%,var(--green) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.tb-left .meta{font-size:.7rem;color:var(--text-dim);letter-spacing:2px;margin-top:2px}
+.tb-right{display:flex;gap:12px}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:8px 18px;background:var(--bg-input);border:1px solid var(--border);color:var(--text);font-size:.78rem;font-weight:600;cursor:pointer;font-family:var(--font);letter-spacing:2px;text-decoration:none;transition:all var(--tf)}
+.btn:hover{border-color:var(--purple);color:#fff}
+
+/* 导航按钮 */
+.nav-btns{display:flex;gap:0;margin-right:8px}
+.nav-btn{padding:7px 16px;font-size:.7rem;font-weight:700;letter-spacing:1px;cursor:pointer;font-family:var(--font);text-decoration:none;background:var(--bg-input);border:1px solid var(--border);color:var(--text-dim);transition:all var(--tf);position:relative}
+.nav-btn:first-child{border-radius:4px 0 0 4px}
+.nav-btn:last-child{border-radius:0 4px 4px 0}
+.nav-btn:hover{border-color:var(--purple);color:var(--text)}
+.nav-btn.active{border-color:var(--green);color:#fff;background:rgba(0,255,163,.06);box-shadow:inset 0 0 0 1px var(--green);z-index:1}
+.nav-btn.active::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--green);box-shadow:0 0 8px var(--green)}
+
+/* 主体双栏 */
+.main-row{display:flex;flex:1;gap:0;padding:16px 24px}
+.col-main{flex:1;min-width:0}
+.col-side{width:300px;flex-shrink:0;margin-left:20px}
+
+/* ============================================================
+   面板组件
+   ============================================================ */
+.panel{background:var(--bg-panel);border:1px solid var(--border);position:relative;margin-bottom:16px}
+.panel::before{content:'';position:absolute;top:-1px;left:-1px;width:16px;height:16px;border-top:2px solid var(--purple);border-left:2px solid var(--purple)}
+.panel::after{content:'';position:absolute;bottom:-1px;right:-1px;width:16px;height:16px;border-bottom:2px solid var(--purple);border-right:2px solid var(--purple)}
+.panel-hd{display:flex;align-items:center;gap:8px;padding:12px 16px 9px;border-bottom:1px solid var(--border)}
+.panel-hd::before{content:'';width:3px;height:14px;background:var(--green);box-shadow:0 0 6px var(--green)}
+.panel-hd span{font-size:.7rem;font-weight:800;letter-spacing:3px;color:var(--text-dim);text-transform:uppercase}
+.panel-bd{padding:14px 16px}
+
+/* 总价条 */
+.total-bar{display:flex;align-items:center;justify-content:space-between;background:var(--bg-panel);border:1px solid var(--border);padding:16px 24px;margin-bottom:16px;position:relative}
+.total-bar::before{content:'';position:absolute;top:-1px;left:-1px;width:16px;height:16px;border-top:2px solid var(--green);border-left:2px solid var(--green)}
+.total-bar .tl{font-size:.7rem;color:var(--text-dim);letter-spacing:4px;text-transform:uppercase}
+.total-bar .tp{font-size:2.4rem;font-weight:900;letter-spacing:1px;background:linear-gradient(135deg,var(--green),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.total-bar .tb{font-size:.78rem;color:var(--text-dim)}
+
+/* ============================================================
+   配件列表 — 宽幅横向单行
+   ============================================================ */
+.part-list{display:flex;flex-direction:column;gap:6px}
+.part-row{display:flex;align-items:center;gap:0;background:var(--bg-panel);border:1px solid var(--border);transition:all var(--tf);position:relative;min-height:56px}
+.part-row:hover{border-color:var(--border-hi);background:var(--bg-hover)}
+.part-row::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--purple);opacity:0;transition:opacity var(--tf)}
+.part-row:hover::before{opacity:1}
+.part-cat{width:76px;flex-shrink:0;text-align:center;font-size:.78rem;font-weight:800;letter-spacing:2px;color:var(--green);border-right:1px solid var(--border);padding:0 6px}
+.part-icon{width:56px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-right:1px solid var(--border);padding:4px}
+.part-icon svg,.part-icon img{width:34px;height:34px;object-fit:cover}
+.part-info{flex:1;min-width:0;padding:6px 14px;display:flex;flex-direction:column;gap:2px}
+.part-info .pn{font-size:.88rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.part-info .pp{font-size:.8rem;font-weight:800;color:var(--green);letter-spacing:1px}
+.part-info .pp .r{font-size:.68rem;color:var(--text-dim);font-weight:400;margin-left:5px}
+.part-shop{display:flex;gap:7px;flex-shrink:0;padding:0 14px}
+.btn-jd,.btn-tb{padding:7px 16px;font-size:.74rem;font-weight:700;cursor:pointer;font-family:var(--font);letter-spacing:1px;text-decoration:none;transition:all var(--tf);white-space:nowrap}
+.btn-jd{background:rgba(230,50,30,.09);border:1px solid rgba(230,50,30,.32);color:#FF6B5B}
+.btn-jd:hover{background:rgba(230,50,30,.2);box-shadow:0 0 10px rgba(230,50,30,.18)}
+.btn-tb{background:rgba(255,108,0,.07);border:1px solid rgba(255,108,0,.28);color:#FF9A40}
+.btn-tb:hover{background:rgba(255,108,0,.16);box-shadow:0 0 10px rgba(255,108,0,.16)}
+
+/* ============================================================
+   侧栏 — 雷达图 + 占比
+   ============================================================ */
+.radar-wrap{width:100%;max-width:250px;margin:0 auto}
+.radar-wrap svg{width:100%;height:auto}
+.breakdown-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.breakdown-row .bdot{width:8px;height:8px;flex-shrink:0}
+.breakdown-row .bname{flex:1;font-size:.7rem;color:var(--text-dim);letter-spacing:1px}
+.breakdown-row .bpct{font-size:.74rem;font-weight:700;color:var(--green);letter-spacing:1px}
+
+/* 操作栏 */
+.action-bar{display:flex;gap:12px;justify-content:center;margin-top:24px;flex-wrap:wrap}
+.btn-act{padding:13px 36px;font-size:.88rem;font-weight:800;letter-spacing:3px;cursor:pointer;font-family:var(--font);text-transform:uppercase;transition:all var(--tf);text-decoration:none;border:none}
+.btn-regen{background:linear-gradient(90deg,var(--purple),var(--purple-b));color:#fff;clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%)}
+.btn-regen:hover{box-shadow:0 0 0 2px rgba(0,255,163,.2),0 0 24px rgba(123,47,253,.25);transform:translateY(-1px)}
+.btn-fav{background:linear-gradient(90deg,rgba(0,255,163,.12),rgba(0,200,112,.1));border:1px solid rgba(0,255,163,.35);color:var(--green)}
+.btn-fav:hover{border-color:var(--green);box-shadow:0 0 16px rgba(0,255,163,.2)}
+.btn-fav.favorited{background:rgba(255,216,77,.1);border-color:rgba(255,216,77,.4);color:var(--c3)}
+.btn-back{background:var(--bg-input);border:1px solid var(--border);color:var(--text)}
+.btn-back:hover{border-color:var(--purple)}
+
+/* 登录弹窗 */
+.modal-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.82);justify-content:center;align-items:center}
+.modal-overlay.show{display:flex}
+.modal-box{background:var(--bg-panel);border:1px solid var(--border);position:relative;width:400px;max-width:94vw}
+.modal-box::before{content:'';position:absolute;top:-1px;left:-1px;width:16px;height:16px;border-top:2px solid var(--purple);border-left:2px solid var(--purple)}
+.modal-box::after{content:'';position:absolute;bottom:-1px;right:-1px;width:16px;height:16px;border-bottom:2px solid var(--purple);border-right:2px solid var(--purple)}
+.modal-hd{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 9px;border-bottom:1px solid var(--border)}
+.modal-hd span{font-size:.74rem;font-weight:800;letter-spacing:3px;color:var(--text-dim)}
+.modal-close{background:none;border:none;color:var(--text-dim);font-size:1.2rem;cursor:pointer;transition:color var(--tf)}
+.modal-close:hover{color:var(--c1)}
+.modal-bd{padding:18px}
+.modal-bd .form-row{margin-bottom:14px}
+.modal-bd .form-row label{display:block;margin-bottom:4px;font-size:.65rem;color:var(--text-dim);letter-spacing:2px}
+.modal-bd .form-row input{width:100%;padding:9px 12px;background:var(--bg-input);border:1px solid var(--border);color:var(--text);font-size:.85rem;font-family:var(--font);letter-spacing:1px;transition:border-color var(--tf)}
+.modal-bd .form-row input:focus{outline:none;border-color:var(--purple)}
+.modal-error{color:var(--c1);font-size:.68rem;letter-spacing:1px;margin-bottom:10px;min-height:18px}
+.modal-btns{display:flex;gap:10px}
+.btn-auth{flex:1;padding:10px 0;font-size:.78rem;font-weight:700;letter-spacing:2px;cursor:pointer;font-family:var(--font);border:none;transition:all var(--tf)}
+.btn-auth.login{background:linear-gradient(135deg,var(--purple),var(--purple-b));color:#fff}
+.btn-auth.login:hover{box-shadow:0 0 16px rgba(123,47,253,.4)}
+.btn-auth.register{background:transparent;border:1px solid var(--green);color:var(--green)}
+.btn-auth.register:hover{background:rgba(0,255,163,.06)}
+
+/* toast */
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:300;padding:10px 28px;background:var(--bg-panel);border:1px solid var(--green);color:var(--green);font-size:.78rem;letter-spacing:2px;animation:toastIn .3s ease,toastOut .3s ease 2s forwards}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(-20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes toastOut{from{opacity:1}to{opacity:0}}
+
+.footnote{text-align:center;margin-top:24px;font-size:.65rem;color:var(--text-weak);letter-spacing:3px;padding-bottom:20px}
+
+.empty-state{padding:48px 20px;text-align:center;color:var(--text-dim);font-size:.85rem;letter-spacing:2px}
+
+@media(max-width:1000px){.main-row{flex-direction:column;padding:8px 10px}.col-side{width:100%;margin-left:0;margin-top:12px}.topbar{padding:10px 12px}}
+@keyframes rowSlideIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+
+<div class="bg-layer">
+  <svg class="bg-waves w1" viewBox="0 0 1440 900" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="wg1" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#00FFA3" stop-opacity="0.12"/><stop offset="35%" stop-color="#00FFA3" stop-opacity="0.04"/>
+        <stop offset="50%" stop-color="#7B2FFD" stop-opacity="0.03"/><stop offset="65%" stop-color="#7B2FFD" stop-opacity="0.04"/>
+        <stop offset="100%" stop-color="#7B2FFD" stop-opacity="0.12"/>
+      </linearGradient>
+      <linearGradient id="wg2" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#00C870" stop-opacity="0.08"/><stop offset="40%" stop-color="#00FFA3" stop-opacity="0.03"/>
+        <stop offset="60%" stop-color="#5B21B6" stop-opacity="0.03"/><stop offset="100%" stop-color="#7B2FFD" stop-opacity="0.08"/>
+      </linearGradient>
+    </defs>
+    <path d="M0,280 C120,160 240,160 360,280 C480,400 600,400 720,280 C840,160 960,160 1080,280 C1200,400 1320,400 1440,280 L1440,620 C1320,740 1200,740 1080,620 C960,500 840,500 720,620 C600,740 480,740 360,620 C240,500 120,500 0,620 Z" fill="url(#wg1)"/>
+    <path d="M0,360 C120,290 240,290 360,360 C480,430 600,430 720,360 C840,290 960,290 1080,360 C1200,430 1320,430 1440,360 L1440,510 C1320,580 1200,580 1080,510 C960,440 840,440 720,510 C600,580 480,580 360,510 C240,440 120,440 0,510 Z" fill="url(#wg2)"/>
+  </svg>
+  <svg class="bg-waves w2" viewBox="0 0 1440 900" preserveAspectRatio="none">
+    <path d="M0,250 C120,150 240,150 360,250 C480,350 600,350 720,250 C840,150 960,150 1080,250 C1200,350 1320,350 1440,250 L1440,580 C1320,680 1200,680 1080,580 C960,480 840,480 720,580 C600,680 480,680 360,580 C240,480 120,480 0,580 Z" fill="url(#wg1)"/>
+  </svg>
+  <svg class="bg-waves w3" viewBox="0 0 1440 900" preserveAspectRatio="none">
+    <path d="M0,310 C120,200 240,200 360,310 C480,420 600,420 720,310 C840,200 960,200 1080,310 C1200,420 1320,420 1440,310 L1440,570 C1320,680 1200,680 1080,570 C960,460 840,460 720,570 C600,680 480,680 360,570 C240,460 120,460 0,570 Z" fill="url(#wg1)"/>
+  </svg>
+  <div id="particlesContainer"></div>
+</div>
+
+
+
+<div class="console">
+
+  <!-- ========== 顶部通栏 ========== -->
+  <header class="topbar">
+    <div class="tb-left">
+      <h1>⚡ 智能配置单</h1>
+      <div class="meta" id="headerMeta">预算 ¥10,000 · 3A大作</div>
+    </div>
+    <div class="tb-right">
+      <div class="nav-btns">
+        <a href="index.html" class="nav-btn">⚡ 智能生成</a>
+        <a href="community.html" class="nav-btn">💬 电脑社区</a>
+        <a href="profile.html" class="nav-btn">👤 个人主页</a>
+      </div>
+      <span id="topTotal" style="font-size:1.1rem;font-weight:800;color:var(--green);align-self:center;letter-spacing:2px">¥9,970</span>
+      <a href="index.html" class="btn">← 返回主页</a>
+    </div>
+  </header>
+
+  <!-- ========== 总价条 ========== -->
+  <div class="main-row">
+    <div class="col-main">
+
+      <div class="total-bar">
+        <div><div class="tl">整机总价 · TOTAL</div><span class="tb" id="budgetRef">预算 ¥10,000</span></div>
+        <div class="tp" id="totalPrice">¥9,970</div>
+      </div>
+
+      <!-- 配件列表 -->
+      <div class="part-list" id="partList"></div>
+
+      <!-- 操作栏 -->
+      <div class="action-bar">
+        <button class="btn-act btn-fav" id="btnFavorite" onclick="toggleFavorite()" style="display:none">⭐ 收藏配置</button>
+        <button class="btn-act btn-regen" onclick="history.back()">🔄 重新生成</button>
+        <a href="index.html" class="btn-act btn-back">🏠 返回主页</a>
+      </div>
+
+      <p class="footnote">AI · POWERED · CONFIGURATION · 数据来源：中关村在线 / 京东</p>
+
+    </div>
+
+    <!-- ========== 侧栏 — 可视化 ========== -->
+    <aside class="col-side">
+
+      <!-- 雷达图 -->
+      <div class="panel">
+        <div class="panel-hd"><span>RADAR · 性能画像</span></div>
+        <div class="panel-bd">
+          <div class="radar-wrap" id="radarChart"></div>
+        </div>
+      </div>
+
+      <!-- 价格占比 -->
+      <div class="panel">
+        <div class="panel-hd"><span>COST · 价格占比</span></div>
+        <div class="panel-bd" id="breakdown"></div>
+      </div>
+
+    </aside>
+  </div>
+
+</div>
+
+<!-- 登录弹窗 -->
+<div class="modal-overlay" id="loginModal">
+  <div class="modal-box">
+    <div class="modal-hd"><span>🔑 登录 / 注册</span><button class="modal-close" onclick="hideLoginModal()">✕</button></div>
+    <div class="modal-bd">
+      <div class="form-row"><label>账号</label><input type="text" id="loginAccount" placeholder="请输入账号 (3-20字符)" maxlength="20"></div>
+      <div class="form-row"><label>密码</label><input type="password" id="loginPassword" placeholder="请输入密码 (6位以上)" maxlength="30"></div>
+      <div class="modal-error" id="modalError"></div>
+      <div class="modal-btns">
+        <button class="btn-auth login" onclick="doLogin()">登录</button>
+        <button class="btn-auth register" onclick="doRegister()">注册</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SVG 图标 + 雷达图 + 数据
+     ============================================================ -->
+<script>
+// ========== 品类图标 ==========
+// 硬件实物照片（本地 img/ 目录）
+const HW_IMG = {
+  CPU_INTEL: 'img/图一.png',
+  CPU_AMD:   'img/图二.png',
+  显卡:      'img/图三.png',
+  内存:      'img/图四.png',
+  固态硬盘:  'img/图五.png',
+  主板:      'img/图六.png',
+  电源:      'img/图七.png',
+  机箱:      'img/图八.png',
+  散热器:    'img/图九.png',
+};
+
+function getIcon(cat, model) {
+  let url;
+  if (cat === 'CPU') {
+    // Intel：含 Intel/Core/酷睿/i3/i5/i7/i9 → 图一；AMD：含 AMD/Ryzen/锐龙/r3/r5/r7/r9 → 图二
+    const m = model.toLowerCase();
+    url = /\b(intel|core|酷睿|i[3579][\s-])\b/i.test(m) ? HW_IMG.CPU_INTEL
+        : /\b(amd|ryzen|锐龙|r[3579][\s-])\b/i.test(m) ? HW_IMG.CPU_AMD
+        : HW_IMG.CPU_INTEL; // 默认 Intel
+  } else {
+    url = HW_IMG[cat] || HW_IMG.CPU_INTEL;
+  }
+  return `<img src="${url}" alt="${cat}" loading="lazy"
+    onerror="this.style.opacity='0.3';"
+    style="width:100%;height:100%;object-fit:cover;filter:brightness(0.85) contrast(1.1) saturate(0.65);">`;
+}
+
+const ICONS = {}; // 保留兼容，实际改用 getIcon()
+
+// ========== 雷达图 (内联SVG) ==========
+function renderRadar(scores){
+  const labels=['游戏','多核','单核','存储','扩展','功耗'];
+  const values=[scores.game/100,scores.prod/100,scores.cpu/100,scores.storage/100,scores.expand/100,scores.power/100];
+  const cx=125,cy=125,r=95,levels=4;
+  const angles=labels.map((_,i)=>(Math.PI*2*i/labels.length)-Math.PI/2);
+  const pts=(v)=>angles.map((a,i)=>`${cx+v*r*Math.cos(a)},${cy+v*r*Math.sin(a)}`).join(' ');
+
+  let svg=`<svg viewBox="0 0 250 250"><defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#7B2FFD" stop-opacity=".5"/><stop offset="100%" stop-color="#00FFA3" stop-opacity=".4"/></linearGradient></defs>`;
+
+  // 背景层
+  for(let l=1;l<=levels;l++) svg+=`<polygon points="${pts(l/levels)}" fill="none" stroke="#2A2240" stroke-width="1"/>`;
+  // 轴线
+  angles.forEach(a=>svg+=`<line x1="${cx}" y1="${cy}" x2="${cx+r*Math.cos(a)}" y2="${cy+r*Math.sin(a)}" stroke="#2A2240" stroke-width="0.8"/>`);
+  // 数据
+  const dp=values.map((v,i)=>`${cx+v*r*Math.cos(angles[i])},${cy+v*r*Math.sin(angles[i])}`).join(' ');
+  svg+=`<polygon points="${dp}" fill="url(#rg)" stroke="#00FFA3" stroke-width="1.5" stroke-linejoin="miter"/>`;
+  // 数据点
+  values.forEach((v,i)=>svg+=`<circle cx="${cx+v*r*Math.cos(angles[i])}" cy="${cy+v*r*Math.sin(angles[i])}" r="3" fill="#00FFA3"/>`);
+  // 标签
+  angles.forEach((a,i)=>{
+    const lx=cx+(r+22)*Math.cos(a),ly=cy+(r+22)*Math.sin(a);
+    svg+=`<text x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle" fill="#8A82A8" font-size="9" font-family="monospace" letter-spacing="1">${labels[i]}</text>`;
+  });
+  svg+='</svg>';
+  document.getElementById('radarChart').innerHTML=svg;
+}
+
+// ========== 价格占比 ==========
+const BAR_COLORS=['#FF6B5B','#FF9A40','#FFD84D','#00FFA3','#40C8FF','#7B2FFD','#A78BFA','#C084FC'];
+function renderBreakdown(configs,total){
+  const cats=['CPU','显卡','主板','内存','固态硬盘','电源','机箱','散热器'];
+  let html='';
+  configs.forEach((c,i)=>{
+    const pct=total>0?(c.price/total*100):0;
+    html+=`<div class="breakdown-row"><div class="bdot" style="background:${BAR_COLORS[i%8]};box-shadow:0 0 6px ${BAR_COLORS[i%8]}"></div><span class="bname">${c.cat}</span><span class="bpct">${pct.toFixed(1)}%</span></div>
+    <div class="pr-bar" style="height:4px;background:var(--bg-input);margin-bottom:8px"><div style="height:100%;width:${pct}%;background:${BAR_COLORS[i%8]}"></div></div>`;
+  });
+  document.getElementById('breakdown').innerHTML=html;
+}
+
+// ========== 示例配置数据 ==========
+const DEMO=[
+  {cat:"CPU",model:"Intel 酷睿 i5-13600KF 盒装",price:1999,reason:"14核20线程 · 游戏多核均衡"},
+  {cat:"显卡",model:"七彩虹 iGame RTX 4070 SUPER Ultra W OC 12G",price:5199,reason:"2K高画质 · DLSS 3帧生成"},
+  {cat:"主板",model:"微星 MAG B760M MORTAR WIFI DDR4",price:449,reason:"12+1+1供电 · WiFi 6E"},
+  {cat:"内存",model:"威刚 XPG 威龙 DDR4 3200 32GB(16G×2)",price:1170,reason:"双通道大容量 · CL16低延迟"},
+  {cat:"固态硬盘",model:"西部数据 SN770 1TB NVMe PCIe 4.0",price:799,reason:"5150MB/s读取 · 游戏秒加载"},
+  {cat:"电源",model:"长城 G6 650W 金牌全模组",price:279,reason:"金牌效率 · 全日系电容"},
+  {cat:"机箱",model:"先马 平头哥 M2 黑色",price:75,reason:"风道优化 · 简约紧凑"},
+  {cat:"散热器",model:"利民 AX120R SE 塔式风冷",price:69,reason:"4热管直触 · 百元级首选"},
+];
+
+// ========== 加载态 HTML ==========
+const LOADING_HTML = `<div style="text-align:center;padding:40px 20px">
+  <div style="font-size:3rem;margin-bottom:16px;animation:pulse 1s ease-in-out infinite">⚡</div>
+  <div style="font-size:1rem;font-weight:700;color:var(--green);letter-spacing:3px;margin-bottom:8px">AI 正在分析配置...</div>
+  <div style="font-size:0.7rem;color:var(--text-dim);letter-spacing:2px" id="loadingStep">连接后端服务</div>
+  <div style="margin-top:16px;height:3px;background:var(--bg-input);overflow:hidden;max-width:300px;margin-left:auto;margin-right:auto">
+    <div style="height:100%;width:30%;background:linear-gradient(90deg,var(--purple),var(--green));animation:scan 1.2s ease-in-out infinite"></div>
+  </div>
+</div>
+<style>@keyframes scan{0%{transform:translateX(-100%)}100%{transform:translateX(400%)}}@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}</style>`;
+
+// ========== 初始化 — 对接后端 API ==========
+async function init(){
+  const params  = new URLSearchParams(window.location.search);
+  const budget  = parseInt(params.get('budget'))   || 10000;
+  const scenario = params.get('scenario')           || '3A大作';
+  const req     = params.get('requirements')       || '';
+
+  // 更新头部
+  document.getElementById('headerMeta').textContent = `预算 ¥${budget.toLocaleString()} · ${scenario}${req?' · '+req:''}`;
+  document.getElementById('budgetRef').textContent  = `预算 ¥${budget.toLocaleString()}`;
+
+  // 显示加载态
+  const partEl  = document.getElementById('partList');
+  const totalEl = document.getElementById('totalPrice');
+  const topEl   = document.getElementById('topTotal');
+  partEl.innerHTML  = LOADING_HTML;
+  totalEl.textContent = '--';
+  topEl.textContent   = '--';
+  document.getElementById('radarChart').innerHTML = '';
+  document.getElementById('breakdown').innerHTML  = '';
+
+  const steps = ['连接后端服务','AI 分析需求中','生成配置清单','查询实时价格','匹配电商链接'];
+  let stepIdx = 0;
+  const stepInterval = setInterval(()=>{
+    stepIdx = (stepIdx+1) % steps.length;
+    const el = document.getElementById('loadingStep');
+    if(el) el.textContent = steps[stepIdx];
+  }, 1500);
+
+  // 调用后端 API
+  try {
+    const resp = await fetch('http://localhost:8000/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ budget: budget, use_case: scenario })
+    });
+    const data = await resp.json();
+    clearInterval(stepInterval);
+
+    if (data.success && data.configs && data.configs.length > 0) {
+      render(data.configs, budget, scenario, data.total_price);
+    } else if (data.configs && data.configs.length > 0) {
+      // 部分成功（某些配件价格缺失）
+      render(data.configs, budget, scenario, data.total_price || 0);
+      if (data.message) console.warn('配置警告:', data.message);
+    } else {
+      // API 返回失败 — 降级到示例数据
+      console.warn('API返回失败:', data.message, '— 降级使用示例数据');
+      render(DEMO, budget, scenario);
+      showApiFallback(data.message || '配置生成失败');
+    }
+  } catch(err) {
+    clearInterval(stepInterval);
+    console.error('API请求异常:', err);
+    // 网络错误 — 降级到示例数据
+    render(DEMO, budget, scenario);
+    showApiFallback('无法连接后端服务，当前为示例数据');
+  }
+}
+
+function showApiFallback(msg){
+  const bar = document.querySelector('.total-bar');
+  if(bar){
+    const note = document.createElement('div');
+    note.style.cssText = 'font-size:0.65rem;color:var(--c1);letter-spacing:1px;margin-top:4px';
+    note.textContent = '⚠ ' + msg;
+    bar.appendChild(note);
+  }
+}
+
+function render(configs, budget, scenario, apiTotal){
+  const el=document.getElementById('partList');
+
+  // 适配 API 数据结构：category/model/price/reason → cat/model/price/reason
+  const items = configs.map(c => ({
+    cat: c.category || c.cat,
+    model: c.model || '',
+    price: c.price || 0,
+    reason: c.reason || '',
+  }));
+
+  let total = apiTotal || 0;
+  if (!apiTotal) items.forEach(c => total += c.price || 0);
+
+  if(!items.length){el.innerHTML='<div class="empty-state">暂无配置数据 · 请返回主页重新生成</div>';return;}
+
+  el.innerHTML=items.map(c=>{
+    const enc=encodeURIComponent(c.model);
+    const icon=getIcon(c.cat, c.model||'');
+    return `<div class="part-row">
+      <div class="part-cat">${esc(c.cat)}</div>
+      <div class="part-icon">${icon}</div>
+      <div class="part-info"><div class="pn" title="${esc(c.model)}">${esc(c.model)}</div><div class="pp">¥${(c.price||0).toLocaleString()}<span class="r">${esc(c.reason)}</span></div></div>
+      <div class="part-shop">
+        <a class="btn-jd" href="https://search.jd.com/Search?keyword=${enc}" target="_blank" rel="noopener">京东</a>
+        <a class="btn-tb" href="https://s.taobao.com/search?q=${enc}" target="_blank" rel="noopener">淘宝</a>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('totalPrice').textContent='¥'+total.toLocaleString();
+  document.getElementById('topTotal').textContent='¥'+total.toLocaleString();
+
+  // 雷达图 (根据场景调整)
+  const is3A=scenario.includes('3A'),isGame=scenario.includes('网游')||is3A,isEdit=scenario.includes('剪辑'),isOffice=scenario.includes('办公');
+  const gameVal = is3A?95:isGame?80:isEdit?40:isOffice?15:50;
+  const prodVal = isEdit?90:is3A?55:isGame?45:isOffice?60:50;
+  const cpuVal  = isGame?85:is3A?75:isEdit?85:isOffice?40:60;
+  const stgVal  = isEdit?80:is3A?60:isGame?55:isOffice?70:55;
+  const expVal  = isEdit?75:is3A?55:isGame?50:isOffice?40:50;
+  const pwrVal  = is3A?90:isGame?70:isEdit?80:isOffice?30:60;
+  const ratio=Math.min(budget/15000,1);
+  const perfScores = {game:Math.round(gameVal*ratio),prod:Math.round(prodVal*ratio),cpu:Math.round(cpuVal*ratio),storage:Math.round(stgVal*ratio),expand:Math.round(expVal*ratio),power:Math.round(pwrVal*ratio)};
+  renderRadar(perfScores);
+  renderBreakdown(items, total);
+
+  // 缓存当前配置数据供收藏使用
+  _currentConfigData = {
+    budget: budget,
+    scenario: scenario,
+    total_price: total,
+    configs: items,
+    performance: perfScores
+  };
+
+  // 同步到后端历史
+  saveHistoryToBackend(_currentConfigData);
+
+  // 检查收藏状态
+  checkFavoriteStatus();
+
+  // 配置渲染完成后显示收藏按钮
+  const favBtn = document.getElementById('btnFavorite');
+  if (favBtn) favBtn.style.display = '';
+}
+
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+
+// ==================== Auth 工具 ====================
+const API_BASE = 'http://localhost:8000';
+function getToken(){ return localStorage.getItem('pc_token')||''; }
+function isLoggedIn(){ return !!getToken(); }
+
+let _currentConfigData = null;  // 缓存当前配置数据用于收藏
+let _favoriteId = null;         // 当前配置是否已收藏
+let _favBtn = null;
+
+// ==================== Toast ====================
+function showToast(msg, color){
+  color = color || 'var(--green)';
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  t.style.borderColor = color;
+  t.style.color = color;
+  document.body.appendChild(t);
+  setTimeout(function(){ if(t.parentNode) t.parentNode.removeChild(t); }, 2500);
+}
+
+// ==================== 收藏功能 ====================
+async function toggleFavorite(){
+  _favBtn = document.getElementById('btnFavorite');
+  if (!isLoggedIn()) { showLoginModal(); return; }
+  if (!_currentConfigData) { showToast('暂无配置数据', 'var(--c1)'); return; }
+
+  if (_favoriteId) {
+    // 已收藏 → 取消收藏
+    try {
+      await fetch(API_BASE + '/api/favorites/' + _favoriteId + '?token=' + encodeURIComponent(getToken()), { method: 'DELETE' });
+      _favoriteId = null;
+      _favBtn.classList.remove('favorited');
+      _favBtn.textContent = '⭐ 收藏配置';
+      showToast('已取消收藏');
+    } catch(e) { showToast('操作失败', 'var(--c1)'); }
+  } else {
+    // 未收藏 → 收藏
+    try {
+      const resp = await fetch(API_BASE + '/api/favorites', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: getToken(), config_data: _currentConfigData })
+      });
+      const data = await resp.json();
+      if (data.success && data.is_favorited) {
+        _favoriteId = data.favorite_id;
+        _favBtn.classList.add('favorited');
+        _favBtn.textContent = '⭐ 已收藏';
+        showToast('收藏成功！');
+      } else if (data.success && !data.is_favorited) {
+        _favoriteId = null;
+        _favBtn.classList.remove('favorited');
+        _favBtn.textContent = '⭐ 收藏配置';
+        showToast('已取消收藏');
+      }
+    } catch(e) { showToast('操作失败', 'var(--c1)'); }
+  }
+}
+
+async function checkFavoriteStatus(){
+  if (!isLoggedIn() || !_currentConfigData) return;
+  try {
+    const resp = await fetch(API_BASE + '/api/favorites?token=' + encodeURIComponent(getToken()));
+    const data = await resp.json();
+    if (data.success && data.favorites) {
+      const cd = _currentConfigData;
+      const found = data.favorites.find(function(f){
+        return Math.abs(f.budget - cd.budget) < 0.01 && f.scenario === cd.scenario && Math.abs(f.total_price - cd.total_price) < 0.01;
+      });
+      if (found) {
+        _favoriteId = found.id;
+        _favBtn = document.getElementById('btnFavorite');
+        if (_favBtn) { _favBtn.classList.add('favorited'); _favBtn.textContent = '⭐ 已收藏'; }
+      }
+    }
+  } catch(e) {}
+}
+
+// ==================== 历史保存 ====================
+async function saveHistoryToBackend(configData){
+  if (!isLoggedIn()) return;
+  try {
+    await fetch(API_BASE + '/api/history', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: getToken(), config_data: configData })
+    });
+  } catch(e) {}
+}
+
+// ==================== 登录弹窗 ====================
+function showLoginModal(){
+  document.getElementById('loginModal').classList.add('show');
+  document.getElementById('modalError').textContent = '';
+  document.getElementById('loginAccount').value = '';
+  document.getElementById('loginPassword').value = '';
+}
+function hideLoginModal(){ document.getElementById('loginModal').classList.remove('show'); }
+document.getElementById('loginModal').addEventListener('click', function(e){ if(e.target === this) hideLoginModal(); });
+
+async function doLogin(){
+  var account = document.getElementById('loginAccount').value.trim();
+  var password = document.getElementById('loginPassword').value.trim();
+  var errEl = document.getElementById('modalError');
+  if (!account || account.length < 3) { errEl.textContent = '账号长度需在 3-20 字符之间'; return; }
+  if (!password || password.length < 6) { errEl.textContent = '密码长度至少 6 字符'; return; }
+  try {
+    var resp = await fetch(API_BASE + '/api/auth/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ account: account, password: password })
+    });
+    var data = await resp.json();
+    if (resp.ok && data.success) {
+      localStorage.setItem('pc_token', data.token);
+      localStorage.setItem('pc_user', JSON.stringify(data.user));
+      hideLoginModal();
+      checkFavoriteStatus();
+    } else { errEl.textContent = data.detail || '登录失败'; }
+  } catch(e) { errEl.textContent = '网络错误，请确认后端已启动'; }
+}
+
+async function doRegister(){
+  var account = document.getElementById('loginAccount').value.trim();
+  var password = document.getElementById('loginPassword').value.trim();
+  var errEl = document.getElementById('modalError');
+  if (!account || account.length < 3) { errEl.textContent = '账号长度需在 3-20 字符之间'; return; }
+  if (!password || password.length < 6) { errEl.textContent = '密码长度至少 6 字符'; return; }
+  try {
+    var resp = await fetch(API_BASE + '/api/auth/register', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ account: account, password: password })
+    });
+    var data = await resp.json();
+    if (data.success) {
+      localStorage.setItem('pc_token', data.token);
+      localStorage.setItem('pc_user', JSON.stringify(data.user));
+      hideLoginModal();
+      checkFavoriteStatus();
+    } else { errEl.textContent = data.detail || '注册失败'; }
+  } catch(e) { errEl.textContent = '网络错误，请确认后端已启动'; }
+}
+
+// ============ 波浪动画 (JS rAF 驱动，无缝循环) ============
+(function(){
+  var waves = document.querySelectorAll('.bg-waves');
+  var speeds = [1/12, -1/14, 1/10];
+  function step(ts){
+    waves.forEach(function(el,i){
+      var dur = Math.abs(speeds[i]) * 1000 * 1000;
+      var raw = (ts % dur) / dur;
+      if (speeds[i] < 0) raw = 1 - raw;
+      el.style.transform = 'translateX(' + (-raw * 50) + '%)';
+    });
+    requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+})();
+
+// 粒子系统
+(function(){
+  var c=document.getElementById('particlesContainer');
+  if(!c)return;
+  var colors=['#00FFA3','#00C870','#7B2FFD','#9B59B6','#5B21B6'];
+  var vw=window.innerWidth,vh=window.innerHeight;
+  var xMin=vw*0.35,xMax=vw*0.65,yMin=vh*0.25,yMax=vh*0.65;
+  function spawn(){
+    var p=document.createElement('span');
+    p.className='bg-particle';
+    var s=2+Math.random()*3,d=5+Math.random()*4;
+    p.style.cssText='left:'+(xMin+Math.random()*(xMax-xMin))+'px;top:'+(yMin+Math.random()*(yMax-yMin))+'px;width:'+s+'px;height:'+s+'px;background:'+colors[Math.floor(Math.random()*colors.length)]+';color:'+colors[Math.floor(Math.random()*colors.length)]+';animation-duration:'+d+'s;';
+    c.appendChild(p);
+    setTimeout(function(){ if(p.parentNode)p.parentNode.removeChild(p); },d*1000+200);
+  }
+  for(var i=0;i<12;i++)setTimeout(function(){spawn();},i*400);
+  setInterval(function(){spawn();},600+Math.random()*300);
+})();
+
+init();
+
+// 个人主页导航拦截 (未登录弹出弹窗)
+document.querySelector('.nav-btns a[href="profile.html"]').addEventListener('click', function(e){
+  if (!isLoggedIn()) { e.preventDefault(); showLoginModal(); }
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智能电脑配置生成系统</title>
+<style>
+/* ============================================================
+   GLOBAL — 锐利硬核赛博科技风 控制台布局
+   ============================================================ */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --bg:        #0D0D18;
+  --bg-panel:  #0F0F1F;
+  --bg-input:  #080814;
+  --bg-hover:  rgba(123,47,253,0.04);
+  --purple:    #7B2FFD;
+  --purple-b:  #5B21B6;
+  --green:     #00FFA3;
+  --green-dim: #00C870;
+  --text:      #E2DCF0;
+  --text-dim:  #8A82A8;
+  --text-weak: #5A5470;
+  --border:    #2A2240;
+  --border-hi: #4A3A6A;
+  --font:      'Inter','JetBrains Mono','PingFang SC','Microsoft YaHei',monospace;
+  --tf:        0.16s ease;
+  --c1: #FF6B5B; --c2: #FF9A40; --c3: #FFD84D; --c4: #00FFA3; --c5: #40C8FF; --c6: #7B2FFD;
+}
+html { font-size:16px; }
+body { font-family:var(--font); background:var(--bg); color:var(--text); min-height:100vh; position:relative; overflow-x:hidden; }
+
+/* 精密网格 */
+body::before { content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background: linear-gradient(rgba(123,47,253,0.045) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(123,47,253,0.045) 1px, transparent 1px);
+  background-size:40px 40px; }
+/* 斜向光带 — 保留原版 */
+body::after { content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background: linear-gradient(135deg, rgba(123,47,253,0.04) 0%, transparent 20%),
+              linear-gradient(315deg, rgba(0,255,163,0.02) 0%, transparent 25%),
+              repeating-linear-gradient(45deg, transparent, transparent 240px, rgba(123,47,253,0.008) 240px, rgba(123,47,253,0.008) 242px); }
+
+/* ============================================================
+   底层背景 — 波浪渐变 + 升腾粒子
+   ============================================================ */
+.bg-layer { position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+.bg-layer .bg-waves { position:absolute; width:200%; height:100%; left:0; top:0; will-change:transform; }
+.bg-layer .bg-waves.w2 { top:35px; opacity:0.55; }
+.bg-layer .bg-waves.w3 { top:-25px; opacity:0.35; }
+
+/* 粒子 */
+.bg-particle { position:absolute; border-radius:50%; pointer-events:none;
+  animation:particleRise linear forwards; box-shadow:0 0 6px currentColor; }
+@keyframes particleRise {
+  0%   { transform:translateY(0) scale(1);   opacity:0.9; }
+  30%  { opacity:0.6; }
+  100% { transform:translateY(-420px) scale(0.15); opacity:0; }
+}
+
+/* ============================================================
+   SHELL — 全屏控制台
+   ============================================================ */
+.console { position:relative; z-index:1; display:flex; flex-direction:column; min-height:100vh; }
+
+/* 顶部通栏 */
+.topbar { display:flex; align-items:center; justify-content:space-between; padding:16px 32px; border-bottom:2px solid var(--border); position:relative; }
+.topbar::after { content:''; position:absolute; bottom:-2px; left:0; width:200px; height:2px; background:linear-gradient(90deg,var(--green),var(--purple)); }
+.tb-left h1 { font-size:1.55rem; font-weight:800; letter-spacing:2px; background:linear-gradient(135deg,#C8B8FF 0%,var(--purple) 45%,var(--green) 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; line-height:1.15; }
+.tb-left .sub { font-size:0.7rem; color:var(--text-dim); letter-spacing:3px; text-transform:uppercase; }
+.tb-right { display:flex; gap:24px; align-items:center; }
+.tb-stat { text-align:center; }
+.tb-stat .val { font-size:0.9rem; font-weight:700; color:var(--green); letter-spacing:1px; }
+.tb-stat .lbl { font-size:0.62rem; color:var(--text-dim); letter-spacing:2px; text-transform:uppercase; }
+
+/* 导航按钮 */
+.nav-btns { display:flex; gap:0; margin-right:16px; }
+.nav-btn { padding:10px 24px; font-size:0.82rem; font-weight:700; letter-spacing:2px; cursor:pointer; font-family:var(--font); text-decoration:none; background:var(--bg-input); border:1px solid var(--border); color:var(--text-dim); transition:all var(--tf); position:relative; }
+.nav-btn:first-child { border-radius:4px 0 0 4px; }
+.nav-btn:last-child { border-radius:0 4px 4px 0; }
+.nav-btn:hover { border-color:var(--purple); color:var(--text); }
+.nav-btn.active { border-color:var(--green); color:#fff; background:rgba(0,255,163,0.06); box-shadow:inset 0 0 0 1px var(--green); z-index:1; }
+.nav-btn.active::after { content:''; position:absolute; bottom:0; left:0; right:0; height:2px; background:var(--green); box-shadow:0 0 8px var(--green); }
+
+/* 主体三栏 */
+.main-row { display:flex; flex:1; gap:0; padding:16px 24px; }
+.col-left  { width:230px; flex-shrink:0; }
+.col-mid   { flex:1; min-width:0; padding:0 20px; }
+.col-right { width:280px; flex-shrink:0; }
+
+/* ============================================================
+   通用面板组件
+   ============================================================ */
+.panel { background:var(--bg-panel); border:1px solid var(--border); position:relative; margin-bottom:16px; }
+.panel::before { content:''; position:absolute; top:-1px; left:-1px; width:16px; height:16px; border-top:2px solid var(--purple); border-left:2px solid var(--purple); }
+.panel::after  { content:''; position:absolute; bottom:-1px; right:-1px; width:16px; height:16px; border-bottom:2px solid var(--purple); border-right:2px solid var(--purple); }
+.panel-hd { display:flex; align-items:center; gap:8px; padding:14px 18px 10px; border-bottom:1px solid var(--border); }
+.panel-hd::before { content:''; width:3px; height:14px; background:var(--green); box-shadow:0 0 6px var(--green); }
+.panel-hd span { font-size:0.72rem; font-weight:800; letter-spacing:3px; color:var(--text-dim); text-transform:uppercase; }
+.panel-bd { padding:14px 18px; }
+
+/* ============================================================
+   左栏 — 历史记录
+   ============================================================ */
+.history-item { padding:10px 12px; border:1px solid transparent; cursor:pointer; transition:all var(--tf); margin-bottom:6px; border-left:2px solid transparent; }
+.history-item:hover { border-color:var(--border-hi); border-left-color:var(--green); background:var(--bg-hover); }
+.history-item .hi-top { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px; }
+.history-item .hi-budget { font-size:0.92rem; font-weight:700; color:var(--green); }
+.history-item .hi-scene { font-size:0.78rem; color:var(--text); }
+.history-item .hi-time { font-size:0.65rem; color:var(--text-weak); }
+.btn-clear { display:block; width:100%; padding:7px; background:transparent; border:1px solid var(--border); color:var(--text-weak); font-size:0.68rem; cursor:pointer; font-family:var(--font); letter-spacing:2px; text-transform:uppercase; transition:all var(--tf); }
+.btn-clear:hover { border-color:var(--c1); color:var(--c1); }
+.empty-hint { text-align:center; padding:24px 8px; color:var(--text-weak); font-size:0.72rem; letter-spacing:2px; }
+
+/* ============================================================
+   中栏 — 核心操作区
+   ============================================================ */
+.input-row { display:flex; align-items:center; background:var(--bg-input); border:1px solid var(--border); margin-bottom:14px; transition:border-color var(--tf); }
+.input-row:focus-within { border-color:var(--purple); }
+.input-row .yen { width:48px; text-align:center; font-size:1.1rem; font-weight:700; color:var(--green); border-right:1px solid var(--border); }
+.input-row input { flex:1; background:transparent; border:none; outline:none; color:var(--text); font-size:1.8rem; font-weight:700; padding:12px 16px; letter-spacing:1px; font-family:var(--font); }
+
+/* 快捷按钮 */
+.quick-row { display:flex; gap:8px; margin-bottom:8px; }
+.qbtn { flex:1; padding:11px 0; text-align:center; background:var(--bg-input); border:1px solid var(--border); color:var(--text-dim); font-size:0.82rem; font-weight:700; cursor:pointer; letter-spacing:1px; font-family:var(--font); transition:all var(--tf); position:relative; }
+.qbtn:hover { border-color:var(--purple); color:var(--text); }
+.qbtn.sel { border-color:var(--green); color:#fff; background:rgba(0,255,163,0.06); box-shadow:inset 0 0 0 1px var(--green); }
+.qbtn.sel::after { content:''; position:absolute; bottom:0; left:0; right:0; height:2px; background:var(--green); box-shadow:0 0 8px var(--green); }
+
+/* 场景网格 */
+.scene-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px; }
+.sbtn { padding:13px 12px; background:var(--bg-input); border:1px solid var(--border); color:var(--text-dim); font-size:0.84rem; font-weight:700; cursor:pointer; font-family:var(--font); letter-spacing:1px; display:flex; align-items:center; gap:7px; transition:all var(--tf); }
+.sbtn:hover { border-color:var(--purple); color:var(--text); }
+.sbtn.sel { background:rgba(123,47,253,0.10); border-color:var(--green); color:#fff; box-shadow:0 0 0 1px var(--green); }
+
+/* 横幅图 */
+.banner-img { width:100%; height:auto; display:block; margin:16px 0; }
+
+/* 生成按钮 */
+.btn-gen { display:block; width:100%; padding:16px 0; font-size:1rem; font-weight:800; letter-spacing:4px; color:#fff; text-transform:uppercase; background:linear-gradient(90deg,var(--purple),#6B2FD8,var(--green-dim)); border:none; cursor:pointer; font-family:var(--font); position:relative; overflow:hidden; transition:all var(--tf); margin-top:18px; clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%); }
+.btn-gen::after { content:''; position:absolute; inset:0; background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,0.07) 45%,transparent 55%); transform:translateX(-110%); transition:transform 0.45s ease; }
+.btn-gen:hover::after { transform:translateX(110%); }
+.btn-gen:hover { box-shadow:0 0 0 2px rgba(0,255,163,0.2),0 0 28px rgba(123,47,253,0.25); }
+
+/* 特性标签 */
+.feat-tags { display:flex; gap:10px; margin-top:14px; justify-content:center; }
+.feat-tag { display:flex; align-items:center; gap:5px; font-size:0.68rem; color:var(--text-weak); letter-spacing:1px; padding:5px 10px; border:1px solid var(--border); }
+.feat-tag .dot { width:5px; height:5px; background:var(--green); box-shadow:0 0 5px var(--green); }
+
+/* 装饰线 */
+.deco-line { display:flex; align-items:center; gap:10px; margin:12px 0 8px; }
+.deco-line::before, .deco-line::after { content:''; flex:1; height:1px; background:linear-gradient(90deg,transparent,var(--border),transparent); }
+.deco-line span { font-size:0.6rem; color:var(--text-weak); letter-spacing:4px; }
+
+/* ============================================================
+   右栏 — 性能预览
+   ============================================================ */
+.perf-row { margin-bottom:12px; }
+.perf-row .pr-label { display:flex; justify-content:space-between; margin-bottom:4px; font-size:0.7rem; letter-spacing:1px; }
+.perf-row .pr-name { color:var(--text-dim); }
+.perf-row .pr-val { color:var(--green); font-weight:700; }
+.pr-bar { height:5px; background:var(--bg-input); position:relative; }
+.pr-bar .fill { height:100%; transition:width 0.4s ease; }
+.fill-green { background:linear-gradient(90deg,var(--green-dim),var(--green)); }
+.fill-purple { background:linear-gradient(90deg,var(--purple-b),var(--purple)); }
+.fill-mixed { background:linear-gradient(90deg,var(--purple),var(--green)); }
+
+.hot-tag { display:inline-block; padding:5px 10px; margin:3px 4px 3px 0; border:1px solid var(--border); font-size:0.68rem; color:var(--text-dim); cursor:pointer; transition:all var(--tf); letter-spacing:1px; }
+.hot-tag:hover { border-color:var(--green); color:var(--green); }
+
+/* ============================================================
+   底部状态栏
+   ============================================================ */
+.bottombar { display:flex; align-items:center; justify-content:space-between; padding:8px 32px; border-top:1px solid var(--border); font-size:0.62rem; color:var(--text-weak); letter-spacing:2px; }
+.bottombar .bt-tags { display:flex; gap:14px; }
+
+/* ============================================================
+   登录弹窗
+   ============================================================ */
+.modal-overlay { display:none; position:fixed; inset:0; z-index:200; background:rgba(0,0,0,0.82); justify-content:center; align-items:center; }
+.modal-overlay.show { display:flex; }
+.modal-box { background:var(--bg-panel); border:1px solid var(--border); position:relative; width:420px; max-width:94vw; }
+.modal-box::before { content:''; position:absolute; top:-1px; left:-1px; width:16px; height:16px; border-top:2px solid var(--purple); border-left:2px solid var(--purple); }
+.modal-box::after  { content:''; position:absolute; bottom:-1px; right:-1px; width:16px; height:16px; border-bottom:2px solid var(--purple); border-right:2px solid var(--purple); }
+.modal-hd { display:flex; align-items:center; justify-content:space-between; padding:16px 20px 10px; border-bottom:1px solid var(--border); }
+.modal-hd span { font-size:0.78rem; font-weight:800; letter-spacing:3px; color:var(--text-dim); }
+.modal-close { background:none; border:none; color:var(--text-dim); font-size:1.2rem; cursor:pointer; transition:color var(--tf); }
+.modal-close:hover { color:var(--c1); }
+.modal-bd { padding:20px; }
+.modal-bd .form-row { margin-bottom:16px; }
+.modal-bd .form-row label { display:block; margin-bottom:5px; font-size:0.68rem; color:var(--text-dim); letter-spacing:2px; }
+.modal-bd .form-row input { width:100%; padding:10px 14px; background:var(--bg-input); border:1px solid var(--border); color:var(--text); font-size:0.88rem; font-family:var(--font); letter-spacing:1px; transition:border-color var(--tf); }
+.modal-bd .form-row input:focus { outline:none; border-color:var(--purple); }
+.modal-error { color:var(--c1); font-size:0.7rem; letter-spacing:1px; margin-bottom:12px; min-height:18px; }
+.modal-btns { display:flex; gap:10px; }
+.btn-auth { flex:1; padding:11px 0; font-size:0.82rem; font-weight:700; letter-spacing:2px; cursor:pointer; font-family:var(--font); border:none; transition:all var(--tf); }
+.btn-auth.login { background:linear-gradient(135deg,var(--purple),var(--purple-b)); color:#fff; }
+.btn-auth.login:hover { box-shadow:0 0 16px rgba(123,47,253,0.4); }
+.btn-auth.register { background:transparent; border:1px solid var(--green); color:var(--green); }
+.btn-auth.register:hover { background:rgba(0,255,163,0.06); }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width:1100px) {
+  .main-row { flex-direction:column; padding:8px 10px; }
+  .col-left, .col-right { width:100%; }
+  .col-mid { padding:0; }
+  .topbar { flex-direction:column; gap:8px; padding:12px 16px; }
+  .tb-right { gap:14px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ========== 底层背景：波浪渐变 + 粒子 ========== -->
+<div class="bg-layer">
+  <svg class="bg-waves w1" viewBox="0 0 1440 900" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="wg1" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#00FFA3" stop-opacity="0.12"/><stop offset="35%" stop-color="#00FFA3" stop-opacity="0.04"/>
+        <stop offset="50%" stop-color="#7B2FFD" stop-opacity="0.03"/><stop offset="65%" stop-color="#7B2FFD" stop-opacity="0.04"/>
+        <stop offset="100%" stop-color="#7B2FFD" stop-opacity="0.12"/>
+      </linearGradient>
+      <linearGradient id="wg2" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#00C870" stop-opacity="0.08"/><stop offset="40%" stop-color="#00FFA3" stop-opacity="0.03"/>
+        <stop offset="60%" stop-color="#5B21B6" stop-opacity="0.03"/><stop offset="100%" stop-color="#7B2FFD" stop-opacity="0.08"/>
+      </linearGradient>
+    </defs>
+    <path d="M0,280 C120,160 240,160 360,280 C480,400 600,400 720,280 C840,160 960,160 1080,280 C1200,400 1320,400 1440,280 L1440,620 C1320,740 1200,740 1080,620 C960,500 840,500 720,620 C600,740 480,740 360,620 C240,500 120,500 0,620 Z" fill="url(#wg1)"/>
+    <path d="M0,350 C150,280 300,280 450,350 C600,420 750,420 900,350 C1050,280 1200,280 1350,350 C1500,420 1580,420 1680,280 Z" fill="url(#wg2)" style="display:none"/>
+    <path d="M0,360 C120,290 240,290 360,360 C480,430 600,430 720,360 C840,290 960,290 1080,360 C1200,430 1320,430 1440,360 L1440,510 C1320,580 1200,580 1080,510 C960,440 840,440 720,510 C600,580 480,580 360,510 C240,440 120,440 0,510 Z" fill="url(#wg2)"/>
+  </svg>
+  <svg class="bg-waves w2" viewBox="0 0 1440 900" preserveAspectRatio="none">
+    <path d="M0,250 C120,150 240,150 360,250 C480,350 600,350 720,250 C840,150 960,150 1080,250 C1200,350 1320,350 1440,250 L1440,580 C1320,680 1200,680 1080,580 C960,480 840,480 720,580 C600,680 480,680 360,580 C240,480 120,480 0,580 Z" fill="url(#wg1)"/>
+  </svg>
+  <svg class="bg-waves w3" viewBox="0 0 1440 900" preserveAspectRatio="none">
+    <path d="M0,310 C120,200 240,200 360,310 C480,420 600,420 720,310 C840,200 960,200 1080,310 C1200,420 1320,420 1440,310 L1440,570 C1320,680 1200,680 1080,570 C960,460 840,460 720,570 C600,680 480,680 360,570 C240,460 120,460 0,570 Z" fill="url(#wg1)"/>
+  </svg>
+  <div id="particlesContainer"></div>
+</div>
+
+<div class="console">
+
+  <!-- ========== 顶部通栏 ========== -->
+  <header class="topbar">
+    <div class="tb-left">
+      <h1>智能电脑配置生成系统</h1>
+      <div class="sub">AI-Powered PC Configurator</div>
+    </div>
+    <div class="tb-right">
+      <div class="nav-btns">
+        <a href="index.html" class="nav-btn active">⚡ 智能生成</a>
+        <a href="community.html" class="nav-btn">💬 电脑社区</a>
+        <a href="profile.html" class="nav-btn" id="navProfile">👤 个人主页</a>
+      </div>
+      <div class="tb-stat"><div class="val" id="sysTime">--</div><div class="lbl">价格数据更新</div></div>
+      <div class="tb-stat"><div class="val">1,247</div><div class="lbl">配件库总量</div></div>
+      <div class="tb-stat"><div class="val">v2.4</div><div class="lbl">系统版本</div></div>
+    </div>
+  </header>
+
+  <!-- ========== 主体三栏 ========== -->
+  <div class="main-row">
+
+    <!-- 左栏：历史记录 20% -->
+    <aside class="col-left">
+      <div class="panel">
+        <div class="panel-hd"><span>HISTORY · 生成历史</span></div>
+        <div class="panel-bd" id="historyList">
+          <!-- JS动态渲染 -->
+        </div>
+        <div style="padding:0 18px 12px;">
+          <button class="btn-clear" id="btnClearHistory">▸ 清空历史</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- 中栏：核心操作区 55% -->
+    <main class="col-mid">
+      <div class="panel">
+        <div class="panel-hd"><span>BUDGET · 预算</span></div>
+        <div class="panel-bd">
+          <div class="input-row">
+            <span class="yen">¥</span>
+            <input type="number" id="budgetInput" value="5000" min="1000" max="100000" step="100" placeholder="输入预算金额">
+          </div>
+          <div class="quick-row" id="budgetBtns">
+            <button class="qbtn sel" data-v="5000">5000元</button>
+            <button class="qbtn" data-v="8000">8000元</button>
+            <button class="qbtn" data-v="10000">10000元</button>
+            <button class="qbtn" data-v="15000">15000元</button>
+          </div>
+        </div>
+      </div>
+
+      <img class="banner-img" src="img/图十.jpg" alt="banner">
+
+      <div class="panel">
+        <div class="panel-hd"><span>SCENARIO · 使用场景</span></div>
+        <div class="panel-bd">
+          <div class="scene-grid" id="sceneBtns">
+            <button class="sbtn" data-scene="主玩网游"><span style="font-size:1.1rem">🎮</span> 主玩网游</button>
+            <button class="sbtn sel" data-scene="3A大作"><span style="font-size:1.1rem">🔥</span> 3A大作</button>
+            <button class="sbtn" data-scene="办公写作"><span style="font-size:1.1rem">📝</span> 办公写作</button>
+            <button class="sbtn" data-scene="视频剪辑"><span style="font-size:1.1rem">🎬</span> 视频剪辑</button>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-gen" id="generateBtn">⚡ 生成智能配置</button>
+
+      <div class="feat-tags">
+        <div class="feat-tag"><span class="dot"></span> 实时价格同步</div>
+        <div class="feat-tag"><span class="dot"></span> 京东淘宝直连</div>
+        <div class="feat-tag"><span class="dot"></span> AI智能适配</div>
+      </div>
+    </main>
+
+    <!-- 右栏：性能预览 25% -->
+    <aside class="col-right">
+      <div class="panel">
+        <div class="panel-hd"><span>PERFORMANCE · 性能预估</span></div>
+        <div class="panel-bd" id="perfPanel">
+          <!-- JS动态渲染 -->
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-hd"><span>HOT · 热门配置</span></div>
+        <div class="panel-bd" id="hotConfigs">
+          <!-- JS动态渲染 -->
+        </div>
+        <div style="padding:0 18px 10px; font-size:0.6rem; color:var(--text-weak); letter-spacing:2px; text-align:right;">数据来源：中关村在线 / 京东</div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- ========== 底部状态栏 ========== -->
+  <footer class="bottombar">
+    <span>SYSTEM ONLINE</span>
+    <div class="bt-tags">
+      <span>实时价格</span><span>AI引擎</span><span>京东/淘宝直连</span><span>本地存储</span>
+    </div>
+    <span>READY</span>
+  </footer>
+
+</div>
+
+<!-- ========== 登录/注册弹窗 ========== -->
+<div class="modal-overlay" id="loginModal">
+  <div class="modal-box">
+    <div class="modal-hd">
+      <span>🔑 登录 / 注册</span>
+      <button class="modal-close" onclick="hideLoginModal()">✕</button>
+    </div>
+    <div class="modal-bd">
+      <div class="form-row">
+        <label>账号</label>
+        <input type="text" id="loginAccount" placeholder="请输入账号 (3-20字符)" maxlength="20">
+      </div>
+      <div class="form-row">
+        <label>密码</label>
+        <input type="password" id="loginPassword" placeholder="请输入密码 (6位以上)" maxlength="30">
+      </div>
+      <div class="modal-error" id="modalError"></div>
+      <div class="modal-btns">
+        <button class="btn-auth login" onclick="doLogin()">登录</button>
+        <button class="btn-auth register" onclick="doRegister()">注册</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCRIPT
+     ============================================================ -->
+<script>
+// ============ DOM 引用 ============
+const budgetInput = document.getElementById('budgetInput');
+const budgetBtns  = document.getElementById('budgetBtns');
+const sceneBtns   = document.getElementById('sceneBtns');
+const historyList = document.getElementById('historyList');
+const perfPanel   = document.getElementById('perfPanel');
+const hotCfgs     = document.getElementById('hotConfigs');
+
+// ============ 状态 ============
+const state = { budget:5000, scene:'3A大作', req:'' };
+
+// ============ 系统时间 ============
+(function updateTime(){
+  const now = new Date();
+  document.getElementById('sysTime').textContent =
+    now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+' '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  setTimeout(updateTime, 60000);
+})();
+
+// ============ Auth 工具 (后端同步) ============
+const API_BASE = 'http://localhost:8000';
+function getToken() { return localStorage.getItem('pc_token') || ''; }
+function isLoggedIn() { return !!getToken(); }
+
+// ============ 历史记录 (localStorage) ============
+const HIST_KEY = 'pc_config_history';
+const MAX_HIST = 5;
+
+function loadHistory(){ try{ return JSON.parse(localStorage.getItem(HIST_KEY)||'[]'); }catch(e){ return[]; } }
+function saveHistory(arr){ localStorage.setItem(HIST_KEY, JSON.stringify(arr.slice(0,MAX_HIST))); }
+
+function addHistory(budget,scene){
+  const arr = loadHistory();
+  arr.unshift({ budget, scene, time: new Date().toLocaleString('zh-CN',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) });
+  saveHistory(arr);
+  renderHistory();
+}
+
+function renderHistory(){
+  const arr = loadHistory();
+  if(!arr.length){ historyList.innerHTML='<div class="empty-hint">-- 暂无历史记录 --<br><small>生成配置后自动记录</small></div>'; return; }
+  historyList.innerHTML = arr.map((h,i)=>`
+    <div class="history-item" data-idx="${i}" title="点击回填此配置">
+      <div class="hi-top"><span class="hi-budget">¥${h.budget.toLocaleString()}</span><span class="hi-scene">${h.scene}</span></div>
+      <div class="hi-time">${h.time}</div>
+    </div>
+  `).join('');
+}
+
+historyList.addEventListener('click', e => {
+  const item = e.target.closest('.history-item');
+  if(!item) return;
+  const h = loadHistory()[parseInt(item.dataset.idx)];
+  if(!h) return;
+  state.budget = h.budget; state.scene = h.scene;
+  budgetInput.value = h.budget;
+  syncBudgetBtns(); syncSceneBtns(); updatePerf();
+});
+
+document.getElementById('btnClearHistory').addEventListener('click',()=>{ localStorage.removeItem(HIST_KEY); renderHistory(); });
+
+// ============ 预算按钮 ============
+function syncBudgetBtns(){
+  document.querySelectorAll('#budgetBtns .qbtn').forEach(b=>b.classList.toggle('sel',parseInt(b.dataset.v)===state.budget));
+}
+budgetBtns.addEventListener('click',e=>{
+	const b=e.target.closest('.qbtn'); if(!b)return;
+	state.budget=parseInt(b.dataset.v); budgetInput.value=state.budget; syncBudgetBtns(); updatePerf();
+});
+budgetInput.addEventListener('focus',()=>{
+	document.querySelectorAll('#budgetBtns .qbtn').forEach(b=>b.classList.remove('sel'));
+});
+budgetInput.addEventListener('input',()=>{
+	state.budget=Math.max(1000,Math.min(100000,parseInt(budgetInput.value)||5000));
+	document.querySelectorAll('#budgetBtns .qbtn').forEach(b=>b.classList.remove('sel'));
+	updatePerf();
+});// ============ 场景按钮 ============
+function syncSceneBtns(){
+  document.querySelectorAll('#sceneBtns .sbtn').forEach(b=>b.classList.toggle('sel',b.dataset.scene===state.scene));
+}
+sceneBtns.addEventListener('click',e=>{
+  const b=e.target.closest('.sbtn'); if(!b)return;
+  state.scene=b.dataset.scene; syncSceneBtns(); updatePerf();
+});
+// state.req 统一置空（补充需求输入框已移除）
+state.req = '';
+
+// ============ 性能预估面板 ============
+function getPerfScores(budget,scene){
+  const ratio = Math.min(budget/15000, 1);
+  let game=0, prod=0, value=0;
+  switch(scene){
+    case '3A大作':   game=Math.round(ratio*95); prod=Math.round(ratio*55); value=Math.round(ratio*80); break;
+    case '主玩网游':  game=Math.round(ratio*80); prod=Math.round(ratio*45); value=Math.round(ratio*85); break;
+    case '视频剪辑':  game=Math.round(ratio*40); prod=Math.round(ratio*90); value=Math.round(ratio*70); break;
+    case '办公写作':  game=Math.round(ratio*15); prod=Math.round(ratio*60); value=Math.round(ratio*95); break;
+    default:         game=Math.round(ratio*50); prod=Math.round(ratio*50); value=Math.round(ratio*75);
+  }
+  return {game, prod, value};
+}
+function updatePerf(){
+  const s=getPerfScores(state.budget,state.scene);
+  perfPanel.innerHTML=`
+    <div class="perf-row"><div class="pr-label"><span class="pr-name">游戏性能</span><span class="pr-val">${s.game}%</span></div><div class="pr-bar"><div class="fill fill-green" style="width:${s.game}%"></div></div></div>
+    <div class="perf-row"><div class="pr-label"><span class="pr-name">生产力</span><span class="pr-val">${s.prod}%</span></div><div class="pr-bar"><div class="fill fill-purple" style="width:${s.prod}%"></div></div></div>
+    <div class="perf-row"><div class="pr-label"><span class="pr-name">性价比</span><span class="pr-val">${s.value}%</span></div><div class="pr-bar"><div class="fill fill-mixed" style="width:${s.value}%"></div></div></div>
+  `;
+}
+
+// ============ 热门配置 ============
+function updateHot(){
+  const configs = [
+    {label:'办公学习',  budget:4000,  scene:'办公写作'},
+    {label:'入门电竞',  budget:6000,  scene:'主玩网游'},
+    {label:'高端玩家',  budget:10000, scene:'3A大作'},
+    {label:'豪华顶配',  budget:15000, scene:'3A大作'},
+  ];
+  hotCfgs.style.display = 'grid';
+  hotCfgs.style.gridTemplateColumns = '1fr 1fr';
+  hotCfgs.style.gap = '6px';
+  hotCfgs.innerHTML=configs.map(c=>`<span class="hot-tag" data-b="${c.budget}" data-s="${c.scene}" title="点击快速选择" style="text-align:center;padding:8px 6px;">▸ ${c.label}<br>¥${c.budget/1000}k</span>`).join('');
+}
+hotCfgs.addEventListener('click',e=>{
+  const t=e.target.closest('.hot-tag'); if(!t)return;
+  state.budget=parseInt(t.dataset.b); state.scene=t.dataset.s;
+  budgetInput.value=state.budget; syncBudgetBtns(); syncSceneBtns(); updatePerf();
+});
+
+// ============ 生成按钮 ============
+document.getElementById('generateBtn').addEventListener('click',()=>{
+  addHistory(state.budget, state.scene);
+  const p=new URLSearchParams({budget:state.budget,scenario:state.scene,requirements:state.req});
+  window.location.href='result.html?'+p.toString();
+});
+document.addEventListener('keydown',e=>{ if(e.key==='Enter'&&document.activeElement===budgetInput) document.getElementById('generateBtn').click(); });
+
+// ============ 登录弹窗 ============
+function showLoginModal() {
+  document.getElementById('loginModal').classList.add('show');
+  document.getElementById('modalError').textContent = '';
+  document.getElementById('loginAccount').value = '';
+  document.getElementById('loginPassword').value = '';
+}
+function hideLoginModal() { document.getElementById('loginModal').classList.remove('show'); }
+document.getElementById('loginModal').addEventListener('click', function(e) { if (e.target === this) hideLoginModal(); });
+
+async function doLogin() {
+  const account = document.getElementById('loginAccount').value.trim();
+  const password = document.getElementById('loginPassword').value.trim();
+  const errEl = document.getElementById('modalError');
+  if (!account || account.length < 3) { errEl.textContent = '账号长度需在 3-20 个字符之间'; return; }
+  if (!password || password.length < 6) { errEl.textContent = '密码长度至少 6 个字符'; return; }
+  try {
+    const resp = await fetch(API_BASE + '/api/auth/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ account, password })
+    });
+    const data = await resp.json();
+    if (resp.ok && data.success) {
+      localStorage.setItem('pc_token', data.token);
+      localStorage.setItem('pc_user', JSON.stringify(data.user));
+      hideLoginModal();
+      updateAuthUI();
+    } else { errEl.textContent = data.detail || '登录失败'; }
+  } catch (e) { errEl.textContent = '网络错误，请确认后端已启动'; }
+}
+
+async function doRegister() {
+  const account = document.getElementById('loginAccount').value.trim();
+  const password = document.getElementById('loginPassword').value.trim();
+  const errEl = document.getElementById('modalError');
+  if (!account || account.length < 3) { errEl.textContent = '账号长度需在 3-20 个字符之间'; return; }
+  if (!password || password.length < 6) { errEl.textContent = '密码长度至少 6 个字符'; return; }
+  try {
+    const resp = await fetch(API_BASE + '/api/auth/register', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ account, password })
+    });
+    const data = await resp.json();
+    if (data.success) {
+      localStorage.setItem('pc_token', data.token);
+      localStorage.setItem('pc_user', JSON.stringify(data.user));
+      hideLoginModal();
+      updateAuthUI();
+    } else { errEl.textContent = data.detail || '注册失败'; }
+  } catch (e) { errEl.textContent = '网络错误，请确认后端已启动'; }
+}
+
+function updateAuthUI() {
+  const navProfile = document.getElementById('navProfile');
+  if (isLoggedIn()) {
+    if (navProfile) navProfile.textContent = '👤 个人主页';
+  }
+}
+
+// 个人主页导航拦截 (未登录弹出弹窗)
+document.getElementById('navProfile').addEventListener('click', function(e) {
+  if (!isLoggedIn()) {
+    e.preventDefault();
+    showLoginModal();
+  }
+});
+
+// ============ 波浪动画 (JS rAF 驱动，彻底杜绝帧级跳变) ============
+(function(){
+  var waves = document.querySelectorAll('.bg-waves');
+  var speeds = [1/12, -1/14, 1/10]; // 周期秒数（负=反向），对应 w1 w2 w3
+  function step(ts){
+    waves.forEach(function(el,i){
+      // 用取模运算做无缝循环：progress 在 [0,1) 连续变化，从不跳变
+      var dur = Math.abs(speeds[i]) * 1000 * 1000; // 换算为微秒
+      var raw = (ts % dur) / dur; // [0, 1) 连续
+      if (speeds[i] < 0) raw = 1 - raw;
+      el.style.transform = 'translateX(' + (-raw * 50) + '%)';
+    });
+    requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+})();
+
+// ============ 粒子系统 ============
+(function(){
+  const container = document.getElementById('particlesContainer');
+  if (!container) return;
+  const colors = ['#00FFA3','#00C870','#7B2FFD','#9B59B6','#5B21B6'];
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const xMin = vw * 0.35, xMax = vw * 0.65;
+  const yMin = vh * 0.25, yMax = vh * 0.65;
+
+  function spawnParticle(){
+    const p = document.createElement('span');
+    p.className = 'bg-particle';
+    const size = 2 + Math.random() * 3;
+    const dur = 5 + Math.random() * 4;
+    p.style.cssText =
+      'left:' + (xMin + Math.random() * (xMax - xMin)) + 'px;' +
+      'top:'  + (yMin + Math.random() * (yMax - yMin)) + 'px;' +
+      'width:'  + size + 'px;height:' + size + 'px;' +
+      'background:' + colors[Math.floor(Math.random() * colors.length)] + ';' +
+      'color:'    + colors[Math.floor(Math.random() * colors.length)] + ';' +
+      'animation-duration:' + dur + 's;';
+    container.appendChild(p);
+    setTimeout(function(){ if(p.parentNode) p.parentNode.removeChild(p); }, dur * 1000 + 200);
+  }
+
+  for (let i = 0; i < 12; i++) {
+    setTimeout(function(){ spawnParticle(); }, i * 400);
+  }
+  setInterval(function(){
+    spawnParticle();
+  }, 600 + Math.random() * 300);
+})();
+
+// ============ 初始化 ============
+updateAuthUI();
+renderHistory();
+updatePerf();
+updateHot();
+</script>
+
+</body>
+</html>

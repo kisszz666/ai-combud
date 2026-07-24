@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>电脑社区 - 智能电脑配置生成系统</title>
+<style>
+/* ============================================================
+   GLOBAL — 锐利硬核赛博科技风 (与主页统一)
+   ============================================================ */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --bg:        #0D0D18;
+  --bg-panel:  #0F0F1F;
+  --bg-input:  #080814;
+  --bg-hover:  rgba(123,47,253,0.04);
+  --purple:    #7B2FFD;
+  --purple-b:  #5B21B6;
+  --green:     #00FFA3;
+  --green-dim: #00C870;
+  --text:      #E2DCF0;
+  --text-dim:  #8A82A8;
+  --text-weak: #5A5470;
+  --border:    #2A2240;
+  --border-hi: #4A3A6A;
+  --font:      'Inter','JetBrains Mono','PingFang SC','Microsoft YaHei',monospace;
+  --tf:        0.16s ease;
+  --c1: #FF6B5B; --c2: #FF9A40; --c3: #FFD84D; --c4: #00FFA3; --c5: #40C8FF; --c6: #7B2FFD;
+}
+html { font-size:16px; }
+body { font-family:var(--font); background:var(--bg); color:var(--text); min-height:100vh; position:relative; overflow-x:hidden; }
+
+/* 精密网格 */
+body::before { content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background: linear-gradient(rgba(123,47,253,0.045) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(123,47,253,0.045) 1px, transparent 1px);
+  background-size:40px 40px; }
+/* 斜向光带 */
+body::after { content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background: linear-gradient(135deg, rgba(123,47,253,0.07) 0%, transparent 25%),
+              linear-gradient(315deg, rgba(0,255,163,0.03) 0%, transparent 30%),
+              repeating-linear-gradient(45deg, transparent, transparent 180px, rgba(123,47,253,0.015) 180px, rgba(123,47,253,0.015) 182px); }
+
+/* ============================================================
+   底层背景 — 波浪渐变 + 升腾粒子
+   ============================================================ */
+.bg-layer { position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+.bg-layer .bg-waves { position:absolute; width:200%; height:100%; left:0; top:0; will-change:transform; }
+.bg-layer .bg-waves.w2 { top:35px; opacity:0.55; }
+.bg-layer .bg-waves.w3 { top:-25px; opacity:0.35; }
+
+/* 粒子 */
+.bg-particle { position:absolute; border-radius:50%; pointer-events:none;
+  animation:particleRise linear forwards; box-shadow:0 0 6px currentColor; }
+@keyframes particleRise {
+  0%   { transform:translateY(0) scale(1);   opacity:0.9; }
+  30%  { opacity:0.6; }
+  100% { transform:translateY(-420px) scale(0.15); opacity:0; }
+}
+
+/* ============================================================
+   SHELL — 全屏控制台
+   ============================================================ */
+.console { position:relative; z-index:1; display:flex; flex-direction:column; min-height:100vh; }
+
+/* 顶部通栏 */
+.topbar { display:flex; align-items:center; justify-content:space-between; padding:16px 32px; border-bottom:2px solid var(--border); position:relative; flex-wrap:wrap; gap:10px; }
+.topbar::after { content:''; position:absolute; bottom:-2px; left:0; width:200px; height:2px; background:linear-gradient(90deg,var(--green),var(--purple)); }
+.tb-left h1 { font-size:1.55rem; font-weight:800; letter-spacing:2px; background:linear-gradient(135deg,#C8B8FF 0%,var(--purple) 45%,var(--green) 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; line-height:1.15; }
+.tb-left .sub { font-size:0.7rem; color:var(--text-dim); letter-spacing:3px; text-transform:uppercase; }
+.tb-right { display:flex; gap:24px; align-items:center; }
+.tb-stat { text-align:center; }
+.tb-stat .val { font-size:0.9rem; font-weight:700; color:var(--green); letter-spacing:1px; }
+.tb-stat .lbl { font-size:0.62rem; color:var(--text-dim); letter-spacing:2px; text-transform:uppercase; }
+
+/* 导航按钮 */
+.nav-btns { display:flex; gap:0; margin-right:16px; }
+.nav-btn { padding:10px 24px; font-size:0.82rem; font-weight:700; letter-spacing:2px; cursor:pointer; font-family:var(--font); text-decoration:none; background:var(--bg-input); border:1px solid var(--border); color:var(--text-dim); transition:all var(--tf); position:relative; }
+.nav-btn:first-child { border-radius:4px 0 0 4px; }
+.nav-btn:last-child { border-radius:0 4px 4px 0; }
+.nav-btn:hover { border-color:var(--purple); color:var(--text); }
+.nav-btn.active { border-color:var(--green); color:#fff; background:rgba(0,255,163,0.06); box-shadow:inset 0 0 0 1px var(--green); z-index:1; }
+.nav-btn.active::after { content:''; position:absolute; bottom:0; left:0; right:0; height:2px; background:var(--green); box-shadow:0 0 8px var(--green); }
+
+/* ============================================================
+   主体 — 帖子列表区
+   ============================================================ */
+.main-area { flex:1; padding:20px 32px; max-width:960px; margin:0 auto; width:100%; }
+
+/* 社区头部信息栏 */
+.community-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:12px; }
+.community-header .ch-info { display:flex; align-items:center; gap:12px; }
+.community-header .ch-dot { width:8px; height:8px; background:var(--green); box-shadow:0 0 8px var(--green); animation:pulse-dot 2s ease-in-out infinite; }
+@keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.community-header .ch-title { font-size:1.1rem; font-weight:800; letter-spacing:3px; color:var(--text); }
+.community-header .ch-count { font-size:0.7rem; color:var(--text-dim); letter-spacing:2px; }
+.btn-refresh { padding:9px 24px; font-size:0.74rem; font-weight:700; letter-spacing:2px; cursor:pointer; font-family:var(--font); background:var(--bg-input); border:1px solid var(--border); color:var(--text-dim); transition:all var(--tf); }
+.btn-refresh:hover { border-color:var(--purple); color:var(--text); }
+.btn-refresh.spinning { pointer-events:none; opacity:0.6; }
+.btn-refresh .icon-refresh { display:inline-block; transition:transform 0.6s ease; }
+.btn-refresh.spinning .icon-refresh { animation:spin 0.8s linear infinite; }
+@keyframes spin { to{transform:rotate(360deg)} }
+
+/* 状态提示 */
+.status-bar { text-align:center; padding:6px 0; margin-bottom:12px; font-size:0.65rem; color:var(--text-weak); letter-spacing:2px; }
+
+/* ============================================================
+   帖子卡片
+   ============================================================ */
+.post-card { background:var(--bg-panel); border:1px solid var(--border); position:relative; margin-bottom:20px; transition:all var(--tf); }
+.post-card::before { content:''; position:absolute; top:-1px; left:-1px; width:16px; height:16px; border-top:2px solid var(--purple); border-left:2px solid var(--purple); }
+.post-card::after  { content:''; position:absolute; bottom:-1px; right:-1px; width:16px; height:16px; border-bottom:2px solid var(--purple); border-right:2px solid var(--purple); }
+.post-card:hover { border-color:var(--border-hi); }
+
+/* 卡片头部 */
+.pc-header { display:flex; align-items:center; justify-content:space-between; padding:16px 20px 10px; border-bottom:1px solid var(--border); flex-wrap:wrap; gap:8px; }
+.pc-author { display:flex; align-items:center; gap:10px; }
+.pc-avatar { width:36px; height:36px; border-radius:2px; background:linear-gradient(135deg,var(--purple-b),var(--purple)); display:flex; align-items:center; justify-content:center; font-size:0.85rem; font-weight:700; color:#fff; letter-spacing:1px; flex-shrink:0; }
+.pc-author-name { font-size:0.88rem; font-weight:700; color:var(--text); letter-spacing:1px; }
+.pc-time { font-size:0.65rem; color:var(--text-weak); letter-spacing:1px; }
+
+/* 卡片主体 */
+.pc-body { padding:18px 20px; }
+.pc-title { font-size:1.05rem; font-weight:700; color:#fff; margin-bottom:12px; letter-spacing:1px; line-height:1.4; }
+.pc-content { font-size:0.88rem; color:var(--text-dim); line-height:1.75; white-space:pre-wrap; word-break:break-word; }
+
+/* 图片网格 */
+.pc-images { display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:10px; margin-top:16px; }
+.pc-images.single { grid-template-columns:minmax(0, 400px); }
+.pc-images img { width:100%; height:auto; max-height:320px; object-fit:cover; border:1px solid var(--border); cursor:pointer; transition:all var(--tf); background:var(--bg-input); }
+.pc-images img:hover { border-color:var(--purple); transform:scale(1.02); box-shadow:0 0 16px rgba(123,47,253,0.3); }
+
+/* 图片查看器 (lightbox) */
+.lightbox { display:none; position:fixed; inset:0; z-index:999; background:rgba(0,0,0,0.92); justify-content:center; align-items:center; cursor:pointer; }
+.lightbox.show { display:flex; }
+.lightbox img { max-width:92vw; max-height:92vh; object-fit:contain; border:1px solid var(--border-hi); box-shadow:0 0 40px rgba(123,47,253,0.2); }
+.lightbox .lb-close { position:absolute; top:20px; right:30px; font-size:2rem; color:var(--text-dim); cursor:pointer; z-index:1000; transition:color var(--tf); }
+.lightbox .lb-close:hover { color:var(--c1); }
+
+/* 卡片底部统计 */
+.pc-footer { display:flex; align-items:center; gap:10px; padding:10px 20px; border-top:1px solid var(--border); font-size:0.7rem; color:var(--text-weak); letter-spacing:1px; flex-wrap:wrap; }
+.pc-stat-item { display:flex; align-items:center; gap:4px; cursor:default; }
+
+/* 互动按钮 */
+.pc-interact-btn { background:transparent; border:1px solid transparent; color:var(--text-dim); font-size:0.7rem; cursor:pointer; font-family:var(--font); padding:5px 12px; letter-spacing:1px; transition:all var(--tf); }
+.pc-interact-btn:hover { border-color:var(--border-hi); color:var(--text); }
+.pc-interact-btn.liked { color:var(--c1); border-color:rgba(255,107,91,0.3); }
+.pc-interact-btn.favorited { color:var(--c3); border-color:rgba(255,216,77,0.3); }
+.comment-input-row { display:none; padding:8px 20px 14px; gap:8px; align-items:center; }
+.comment-input-row.show { display:flex; }
+.comment-input-row input { flex:1; background:var(--bg-input); border:1px solid var(--border); color:var(--text); padding:7px 10px; font-family:var(--font); font-size:0.78rem; }
+.comment-input-row input:focus { outline:none; border-color:var(--green); }
+/* 本地评论在 replies-list 中随 .reply-item 一起展示，无需额外容器样式 */
+.warning-banner { text-align:center; padding:8px; margin-bottom:12px; font-size:0.62rem; color:var(--c2); letter-spacing:1px; border:1px solid rgba(255,154,64,0.2); background:rgba(255,154,64,0.05); }
+
+/* ============================================================
+   评论区
+   ============================================================ */
+.replies-section { border-top:1px solid var(--border); padding:12px 20px 16px; }
+.replies-toggle { display:flex; align-items:center; gap:6px; font-size:0.7rem; color:var(--text-dim); letter-spacing:2px; cursor:pointer; padding:4px 0; transition:color var(--tf); }
+.replies-toggle:hover { color:var(--green); }
+.replies-toggle .arrow { display:inline-block; transition:transform var(--tf); font-size:0.6rem; }
+.replies-toggle.open .arrow { transform:rotate(90deg); }
+.replies-list { display:none; margin-top:10px; }
+.replies-list.show { display:block; }
+.reply-item { padding:10px 12px; margin-bottom:6px; background:var(--bg-input); border-left:2px solid var(--border); transition:border-color var(--tf); }
+.reply-item:hover { border-left-color:var(--purple); }
+.reply-item .ri-header { display:flex; align-items:center; gap:8px; margin-bottom:4px; flex-wrap:wrap; }
+.reply-item .ri-author { font-size:0.74rem; font-weight:700; color:var(--text); letter-spacing:1px; }
+.reply-item .ri-time { font-size:0.6rem; color:var(--text-weak); letter-spacing:1px; }
+.reply-item .ri-content { font-size:0.8rem; color:var(--text-dim); line-height:1.6; white-space:pre-wrap; word-break:break-word; }
+.no-replies { font-size:0.68rem; color:var(--text-weak); letter-spacing:2px; text-align:center; padding:8px; }
+
+/* BDUSS 登录态输入区 */
+.bduss-bar { display:flex; align-items:center; gap:10px; margin-bottom:14px; padding:10px 14px; background:var(--panel); border:1px solid var(--border); border-radius:8px; flex-wrap:wrap; }
+.bduss-bar label { font-size:0.72rem; color:var(--text-dim); letter-spacing:1px; white-space:nowrap; }
+.bduss-bar input { flex:1; min-width:220px; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:7px 10px; color:var(--text); font-size:0.75rem; font-family:inherit; }
+.bduss-bar input:focus { outline:none; border-color:var(--green); }
+.bduss-bar .bduss-hint { font-size:0.64rem; color:var(--text-weak); letter-spacing:1px; }
+.bduss-bar .bduss-clear { background:none; border:1px solid var(--border); color:var(--text-dim); border-radius:6px; padding:6px 12px; font-size:0.68rem; cursor:pointer; }
+.bduss-bar .bduss-clear:hover { border-color:var(--c1); color:var(--c1); }
+
+/* ============================================================
+   加载 / 空状态
+   ============================================================ */
+.loading-state { text-align:center; padding:80px 20px; }
+.loading-state .spinner { width:40px; height:40px; margin:0 auto 20px; border:2px solid var(--border); border-top-color:var(--green); border-radius:50%; animation:spin 0.8s linear infinite; }
+.loading-state .loading-text { font-size:0.8rem; color:var(--text-dim); letter-spacing:3px; }
+.empty-state { text-align:center; padding:60px 20px; }
+.empty-state .empty-icon { font-size:3rem; margin-bottom:16px; }
+.empty-state .empty-text { font-size:0.85rem; color:var(--text-dim); letter-spacing:2px; margin-bottom:8px; }
+.empty-state .empty-hint { font-size:0.68rem; color:var(--text-weak); letter-spacing:1px; }
+
+/* ============================================================
+   底部状态栏
+   ============================================================ */
+.bottombar { display:flex; align-items:center; justify-content:space-between; padding:8px 32px; border-top:1px solid var(--border); font-size:0.62rem; color:var(--text-weak); letter-spacing:2px; margin-top:auto; }
+.bottombar .bt-tags { display:flex; gap:14px; }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width:768px) {
+  .main-area { padding:12px 10px; }
+  .topbar { padding:12px 16px; }
+  .nav-btns { margin-right:0; }
+  .nav-btn { padding:8px 14px; font-size:0.72rem; letter-spacing:1px; }
+  .pc-images { grid-template-columns:1fr; }
+  .pc-header { flex-direction:column; align-items:flex-start; }
+}
+</style>
+</head>
+<body>
+
+<div class="bg-layer">
+  <svg class="bg-waves w1" viewBox="0 0 1440 900" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="wg1" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#00FFA3" stop-opacity="0.12"/><stop offset="35%" stop-color="#00FFA3" stop-opacity="0.04"/>
+        <stop offset="50%" stop-color="#7B2FFD" stop-opacity="0.03"/><stop offset="65%" stop-color="#7B2FFD" stop-opacity="0.04"/>
+        <stop offset="100%" stop-color="#7B2FFD" stop-opacity="0.12"/>
+      </linearGradient>
+      <linearGradient id="wg2" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#00C870" stop-opacity="0.08"/><stop offset="40%" stop-color="#00FFA3" stop-opacity="0.03"/>
+        <stop offset="60%" stop-color="#5B21B6" stop-opacity="0.03"/><stop offset="100%" stop-color="#7B2FFD" stop-opacity="0.08"/>
+      </linearGradient>
+    </defs>
+    <path d="M0,280 C120,160 240,160 360,280 C480,400 600,400 720,280 C840,160 960,160 1080,280 C1200,400 1320,400 1440,280 L1440,620 C1320,740 1200,740 1080,620 C960,500 840,500 720,620 C600,740 480,740 360,620 C240,500 120,500 0,620 Z" fill="url(#wg1)"/>
+    <path d="M0,360 C120,290 240,290 360,360 C480,430 600,430 720,360 C840,290 960,290 1080,360 C1200,430 1320,430 1440,360 L1440,510 C1320,580 1200,580 1080,510 C960,440 840,440 720,510 C600,580 480,580 360,510 C240,440 120,440 0,510 Z" fill="url(#wg2)"/>
+  </svg>
+  <svg class="bg-waves w2" viewBox="0 0 1440 900" preserveAspectRatio="none">
+    <path d="M0,250 C120,150 240,150 360,250 C480,350 600,350 720,250 C840,150 960,150 1080,250 C1200,350 1320,350 1440,250 L1440,580 C1320,680 1200,680 1080,580 C960,480 840,480 720,580 C600,680 480,680 360,580 C240,480 120,480 0,580 Z" fill="url(#wg1)"/>
+  </svg>
+  <svg class="bg-waves w3" viewBox="0 0 1440 900" preserveAspectRatio="none">
+    <path d="M0,310 C120,200 240,200 360,310 C480,420 600,420 720,310 C840,200 960,200 1080,310 C1200,420 1320,420 1440,310 L1440,570 C1320,680 1200,680 1080,570 C960,460 840,460 720,570 C600,680 480,680 360,570 C240,460 120,460 0,570 Z" fill="url(#wg1)"/>
+  </svg>
+  <div id="particlesContainer"></div>
+</div>
+
+
+
+<div class="console">
+
+  <!-- ========== 顶部通栏 ========== -->
+  <header class="topbar">
+    <div class="tb-left">
+      <h1>智能电脑配置生成系统</h1>
+      <div class="sub">AI-Powered PC Configurator</div>
+    </div>
+    <div class="tb-right">
+      <div class="nav-btns">
+        <a href="index.html" class="nav-btn">⚡ 智能生成</a>
+        <a href="community.html" class="nav-btn active">💬 电脑社区</a>
+        <a href="profile.html" class="nav-btn">👤 个人主页</a>
+      </div>
+      <div class="tb-stat"><div class="val" id="postCount">--</div><div class="lbl">社区帖子</div></div>
+      <div class="tb-stat"><div class="val">电脑吧</div><div class="lbl">数据来源</div></div>
+    </div>
+  </header>
+
+  <!-- ========== 主体 ========== -->
+  <div class="main-area">
+
+    <!-- 社区头部 -->
+    <div class="community-header">
+      <div class="ch-info">
+        <div class="ch-dot"></div>
+        <span class="ch-title">电脑社区</span>
+        <span class="ch-count" id="cacheInfo"></span>
+      </div>
+      <button class="btn-refresh" id="btnRefresh" onclick="refreshData()" title="从电脑吧实时抓取最新帖子">
+        <span class="icon-refresh">↻</span> 刷新数据
+      </button>
+    </div>
+
+    <!-- 状态提示 -->
+    <div class="status-bar" id="statusBar">正在连接后端服务...</div>
+
+    <!-- 本地存储警告 -->
+    <div class="warning-banner">⚠ 点赞/收藏/评论数据仅保存在浏览器本地，更换设备或清除浏览器缓存后数据将丢失</div>
+
+    <!-- BDUSS 登录态（可选，提供后可稳定爬满 100 帖） -->
+    <div class="bduss-bar">
+      <label for="bdussInput">🔑 BDUSS 登录态</label>
+      <input type="password" id="bdussInput" placeholder="可选 · 粘贴贴吧 BDUSS cookie，能获取更多内容">
+      <button class="bduss-clear" onclick="clearBduss()">清除</button>
+      <span class="bduss-hint">登录 tieba.baidu.com 后 F12 → Application → Cookie 复制 BDUSS；仅保存在你浏览器本地</span>
+    </div>
+
+    <!-- 帖子列表容器 -->
+    <div id="postList"></div>
+
+  </div>
+
+  <!-- ========== 底部状态栏 ========== -->
+  <footer class="bottombar">
+    <span>COMMUNITY ONLINE</span>
+    <div class="bt-tags">
+      <span>实时爬取</span><span>电脑吧</span><span>图片加载</span><span>评论解析</span>
+    </div>
+    <span>READY</span>
+  </footer>
+
+</div>
+
+<!-- 图片查看器 -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <span class="lb-close">✕</span>
+  <img id="lightboxImg" src="" alt="预览">
+</div>
+
+<!-- ============================================================
+     SCRIPT
+     ============================================================ -->
+<script>
+// ============ 配置 ============
+const API_BASE = 'http://localhost:8000';
+
+// ============ 状态 ============
+let allPosts = [];
+let pollTimer = null;
+
+// ============ 加载帖子（秒级响应）============
+async function loadPosts() {
+  const listEl = document.getElementById('postList');
+  const statusEl = document.getElementById('statusBar');
+
+  listEl.innerHTML = `
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <div class="loading-text">正在加载社区内容...</div>
+    </div>`;
+  statusEl.textContent = '正在获取数据...';
+
+  try {
+    const resp = await fetch(`${API_BASE}/api/community/posts?limit=20`);
+    const data = await resp.json();
+
+    if (data.success && data.posts && data.posts.length > 0) {
+      allPosts = data.posts;
+      renderPosts(data.posts);
+      document.getElementById('postCount').textContent = data.total || data.posts.length;
+
+      // 数据来源标识
+      const cacheEl = document.getElementById('cacheInfo');
+      if (data.source === 'scraped') {
+        cacheEl.textContent = '· 来自贴吧实时数据';
+        cacheEl.style.color = 'var(--green)';
+      } else {
+        cacheEl.textContent = '· 暂无数据，请点击刷新获取';
+        cacheEl.style.color = 'var(--c2)';
+      }
+
+      // 如果正在后台爬取，显示进度
+      if (data.scraping) {
+        statusEl.textContent = '⏳ 后台爬取中，请稍候...';
+        statusEl.style.color = 'var(--c2)';
+        startPollingStatus();
+      } else if (data.scrape_message) {
+        statusEl.textContent = data.scrape_message;
+        statusEl.style.color = 'var(--text-weak)';
+      } else {
+        statusEl.textContent = `共 ${data.posts.length} 个帖子 · 来源: 百度贴吧「电脑吧」`;
+        statusEl.style.color = 'var(--text-weak)';
+      }
+    } else {
+      listEl.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">📭</div>
+          <div class="empty-text">暂无社区帖子</div>
+          <div class="empty-hint">请点击"刷新数据"按钮从电脑吧获取最新帖子</div>
+        </div>`;
+      statusEl.textContent = '暂无数据 · 请刷新';
+    }
+  } catch (err) {
+    console.error('加载失败:', err);
+    listEl.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">⚠️</div>
+        <div class="empty-text">无法连接后端服务</div>
+        <div class="empty-hint">请确认后端已启动:<br>cd ${window.location.hostname === 'localhost' ? '项目目录' : 'c:\\project5\\fianl4'}<br>python backend/main.py</div>
+      </div>`;
+    statusEl.textContent = '连接失败 · 请检查后端服务';
+    document.getElementById('postCount').textContent = '--';
+  }
+}
+
+// ============ 刷新数据（触发后台爬取 + 轮询）============
+async function refreshData(forceReset = false) {
+  const btnRefresh = document.getElementById('btnRefresh');
+  const statusEl = document.getElementById('statusBar');
+
+  btnRefresh.classList.add('spinning');
+  statusEl.textContent = forceReset ? '正在强制重置卡死状态...' : '正在启动后台爬取...';
+  statusEl.style.color = 'var(--c2)';
+
+  try {
+    const bduss = (document.getElementById('bdussInput')?.value || '').trim();
+    let url = `${API_BASE}/api/community/refresh?limit=100`;
+    if (bduss) url += `&bduss=${encodeURIComponent(bduss)}`;
+    if (forceReset) url += '&force=true';
+    const resp = await fetch(url, { method: 'POST' });
+    const data = await resp.json();
+
+    if (data.success) {
+      statusEl.textContent = '⏳ ' + data.message;
+      startPollingStatus();
+    } else {
+      // 如果爬取已在运行中，显示强制重置选项
+      if (data.message && data.message.includes('已在运行中')) {
+        statusEl.innerHTML = '⚠ ' + data.message + ' <a href="javascript:void(0)" onclick="refreshData(true)" style="color:var(--green);text-decoration:underline;cursor:pointer;">[点击强制重置]</a>';
+        statusEl.style.color = 'var(--c2)';
+      } else {
+        statusEl.textContent = data.message || '启动爬取失败';
+        statusEl.style.color = 'var(--c1)';
+      }
+      btnRefresh.classList.remove('spinning');
+    }
+  } catch (err) {
+    console.error('刷新失败:', err);
+    statusEl.textContent = '网络错误 · 请确认后端已启动';
+    statusEl.style.color = 'var(--c1)';
+    btnRefresh.classList.remove('spinning');
+  }
+}
+
+// ============ 轮询爬取状态 ============
+function startPollingStatus() {
+  if (pollTimer) clearInterval(pollTimer);
+
+  const statusEl = document.getElementById('statusBar');
+  const btnRefresh = document.getElementById('btnRefresh');
+  let pollCount = 0;
+  const MAX_POLL = 90; // 最多轮询 90 次
+
+  pollTimer = setInterval(async () => {
+    pollCount++;
+    try {
+      const resp = await fetch(`${API_BASE}/api/community/status`);
+      const s = await resp.json();
+
+      if (s.running) {
+        statusEl.textContent = `⏳ 后台爬取中，请稍候... (${pollCount}s)`;
+        statusEl.style.color = 'var(--c2)';
+        btnRefresh.classList.add('spinning');
+      } else if (s.result === 'ok') {
+        // 爬取完成 → 停止轮询 → 重新加载数据
+        clearInterval(pollTimer);
+        pollTimer = null;
+        btnRefresh.classList.remove('spinning');
+        statusEl.textContent = '✅ ' + (s.message || '爬取完成，正在刷新列表...');
+        statusEl.style.color = 'var(--green)';
+        // 重新加载帖子（现在会读到新的 posts.json）
+        setTimeout(() => loadPosts(), 500);
+      } else if (s.result === 'security_blocked') {
+        // 被安全验证拦截
+        clearInterval(pollTimer);
+        pollTimer = null;
+        btnRefresh.classList.remove('spinning');
+        statusEl.innerHTML = `🔒 ${s.message || '触发安全验证'} <a href="javascript:void(0)" onclick="runSeleniumMode()" style="color:var(--green);text-decoration:underline;margin-left:8px;">[使用浏览器模式重试]</a>`;
+        statusEl.style.color = 'var(--c1)';
+      } else if (s.result === 'empty') {
+        // 无数据
+        clearInterval(pollTimer);
+        pollTimer = null;
+        btnRefresh.classList.remove('spinning');
+        statusEl.textContent = '📭 ' + (s.message || '未获取到数据');
+        statusEl.style.color = 'var(--c1)';
+      } else if (s.result === 'error') {
+        clearInterval(pollTimer);
+        pollTimer = null;
+        btnRefresh.classList.remove('spinning');
+        statusEl.textContent = '❌ ' + (s.message || '爬取出错');
+        statusEl.style.color = 'var(--c1)';
+      }
+
+      if (pollCount >= MAX_POLL) {
+        clearInterval(pollTimer);
+        pollTimer = null;
+        btnRefresh.classList.remove('spinning');
+        statusEl.innerHTML = '⚠ 爬取超时 <a href="javascript:void(0)" onclick="runSeleniumMode()" style="color:var(--green);text-decoration:underline;margin-left:8px;">[使用浏览器模式]</a>';
+        statusEl.style.color = 'var(--c1)';
+      }
+    } catch (e) {
+      // 轮询出错不中断
+    }
+  }, 1000);
+}
+
+// 使用 Selenium 模式重试
+async function runSeleniumMode() {
+  const btnRefresh = document.getElementById('btnRefresh');
+  const statusEl = document.getElementById('statusBar');
+  
+  statusEl.textContent = '🔄 正在使用浏览器模式重试...';
+  statusEl.style.color = 'var(--c2)';
+  
+  try {
+    const resp = await fetch(`${API_BASE}/api/community/refresh?limit=20&mode=selenium&force=true`, { method: 'POST' });
+    const data = await resp.json();
+    
+    if (data.success) {
+      statusEl.textContent = '🚀 ' + data.message;
+      startPollingStatus();
+    } else {
+      statusEl.textContent = '❌ ' + data.message;
+      statusEl.style.color = 'var(--c1)';
+    }
+  } catch (err) {
+    statusEl.textContent = '❌ 启动失败：' + err.message;
+    statusEl.style.color = 'var(--c1)';
+  }
+}
+
+// ============ 渲染帖子列表 ============
+function renderPosts(posts) {
+  const listEl = document.getElementById('postList');
+  if (!posts || posts.length === 0) {
+    listEl.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">📭</div>
+        <div class="empty-text">暂无帖子</div>
+      </div>`;
+    return;
+  }
+
+  listEl.innerHTML = posts.map((post, idx) => {
+    const avatarChar = (post.author || '匿')[0];
+    const imagesHtml = renderImages(post.images || []);
+    const repliesHtml = renderReplies(post.replies || [], post.tid || idx);
+
+    return `
+      <article class="post-card">
+        <div class="pc-header">
+          <div class="pc-author">
+            <div class="pc-avatar">${esc(avatarChar)}</div>
+            <div>
+              <div class="pc-author-name">${esc(post.author || '匿名用户')}</div>
+              <div class="pc-time">${esc(post.post_time || post.list_date || '')}</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;">
+          </div>
+        </div>
+
+        <div class="pc-body">
+          ${post.title ? `<div class="pc-title">${esc(post.title)}</div>` : ''}
+          ${post.content ? `<div class="pc-content">${esc(post.content)}</div>` : '<div class="pc-content" style="color:var(--text-weak);">（无文字内容）</div>'}
+          ${imagesHtml}
+        </div>
+
+        <div class="pc-footer">
+          <button class="pc-interact-btn" data-action="like" data-tid="${esc(post.tid || '')}" data-title="${esc(post.title || '')}" data-author="${esc(post.author || '匿名')}" data-time="${esc(post.post_time || post.list_date || '')}" data-like-count="${post.like_count || 0}">👍 点赞(${post.like_count || 0})</button>
+          <button class="pc-interact-btn" data-action="favorite" data-tid="${esc(post.tid || '')}" data-title="${esc(post.title || '')}" data-author="${esc(post.author || '匿名')}" data-time="${esc(post.post_time || post.list_date || '')}">⭐ 收藏</button>
+          <button class="pc-interact-btn" data-action="comment" data-tid="${esc(post.tid || '')}" data-title="${esc(post.title || '')}">💬 评论</button>
+          <span class="pc-stat-item"><span class="si-icon">🖼</span> ${(post.images || []).length} 图</span>
+        </div>
+
+        <div class="comment-input-row" id="commentRow-${esc(post.tid || '')}">
+          <input type="text" id="commentInput-${esc(post.tid || '')}" placeholder="输入评论 (仅保存在本地)..." maxlength="500">
+          <button class="btn-sm" onclick="submitComment('${esc(post.tid || '')}', '${esc(post.title || '')}')">发送</button>
+        </div>
+
+        ${repliesHtml}
+      </article>
+    `;
+  }).join('');
+}
+
+// ============ 渲染图片 ============
+function renderImages(images) {
+  if (!images || images.length === 0) return '';
+  const gridClass = images.length === 1 ? 'pc-images single' : 'pc-images';
+  const imgs = images.map((url, i) => {
+    // 使用原始 URL（百度图床带令牌地址可直接引用）
+    const imgUrl = url.startsWith('http') ? url : `http://localhost:8000/community-images/${url}`;
+    return `<img src="${esc(imgUrl)}" alt="图片${i+1}" loading="lazy"
+      onclick="event.stopPropagation();openLightbox('${esc(imgUrl)}')"
+      onerror="this.parentElement.removeChild(this);">`;
+  }).join('');
+  return `<div class="${gridClass}">${imgs}</div>`;
+}
+
+// ============ 渲染评论 ============
+function renderReplies(replies, postId) {
+  const localPlaceholder = `<div class="local-replies-area" id="localComments-${esc(postId || '')}"></div>`;
+
+  if (!replies || replies.length === 0) {
+    return `
+      <div class="replies-section">
+        <div class="replies-toggle" onclick="toggleReplies(this)" id="toggle-${esc(postId || '')}">
+          <span class="arrow">▶</span> 查看评论 (<span class="reply-count-num">0</span>)
+        </div>
+        <div class="replies-list">
+          ${localPlaceholder}
+          <div class="no-replies" id="noReplies-${esc(postId || '')}">-- 暂无评论 --</div>
+        </div>
+      </div>`;
+  }
+
+  const repliesListHtml = replies.map(r => `
+    <div class="reply-item">
+      <div class="ri-header">
+        <span class="ri-author">${esc(r.author || '匿名')}</span>
+        ${r.time ? `<span class="ri-time">${esc(r.time)}</span>` : ''}
+      </div>
+      <div class="ri-content">${esc(r.content || '')}</div>
+    </div>
+  `).join('');
+
+  return `
+    <div class="replies-section">
+      <div class="replies-toggle" onclick="toggleReplies(this)" id="toggle-${esc(postId || '')}">
+        <span class="arrow">▶</span> 查看评论 (<span class="reply-count-num">${replies.length}</span>)
+      </div>
+      <div class="replies-list">
+        ${localPlaceholder}
+        ${repliesListHtml}
+      </div>
+    </div>`;
+}
+
+// ============ 评论折叠/展开 ============
+function toggleReplies(toggleEl) {
+  toggleEl.classList.toggle('open');
+  const list = toggleEl.nextElementSibling;
+  if (list) {
+    list.classList.toggle('show');
+  }
+}
+
+// ============ 图片灯箱 ============
+function openLightbox(src) {
+  const lb = document.getElementById('lightbox');
+  const img = document.getElementById('lightboxImg');
+  img.src = src;
+  lb.classList.add('show');
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('show');
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeLightbox();
+});
+
+// ============ 工具函数 ============
+function esc(s) {
+  if (!s) return '';
+  const d = document.createElement('div');
+  d.textContent = String(s);
+  return d.innerHTML;
+}
+
+// ============ 定时刷新缓存信息 ============
+function updateCacheInfo() {
+  const el = document.getElementById('cacheInfo');
+  // 如果页面已有缓存年龄信息，不做额外更新；交给 loadPosts 处理
+}
+
+// ============ 本地互动数据 (localStorage) ============
+function getLocal(key) { try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch(e) { return []; } }
+function setLocal(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
+
+function isPostLiked(tid) { return getLocal('pc_liked_posts').some(p => p.tid === tid); }
+function isPostFaved(tid) { return getLocal('pc_fav_posts').some(p => p.tid === tid); }
+
+function toggleLike(tid, title, author, timeStr) {
+  let posts = getLocal('pc_liked_posts');
+  const idx = posts.findIndex(p => p.tid === tid);
+  if (idx >= 0) {
+    posts.splice(idx, 1);
+  } else {
+    posts.push({ tid, title, author, time: timeStr || new Date().toLocaleString('zh-CN') });
+  }
+  setLocal('pc_liked_posts', posts);
+  refreshInteractionStates();
+}
+
+function toggleFavPost(tid, title, author, timeStr) {
+  let posts = getLocal('pc_fav_posts');
+  const idx = posts.findIndex(p => p.tid === tid);
+  if (idx >= 0) {
+    posts.splice(idx, 1);
+  } else {
+    posts.push({ tid, title, author, time: timeStr || new Date().toLocaleString('zh-CN') });
+  }
+  setLocal('pc_fav_posts', posts);
+  refreshInteractionStates();
+}
+
+function showCommentInput(tid) {
+  const row = document.getElementById('commentRow-' + tid);
+  if (row) { row.classList.toggle('show'); row.querySelector('input')?.focus(); }
+}
+
+function submitComment(tid, postTitle) {
+  const input = document.getElementById('commentInput-' + tid);
+  if (!input) return;
+  const content = input.value.trim();
+  if (!content) return;
+
+  let comments = getLocal('pc_comments');
+  comments.unshift({ tid, postTitle, content, time: new Date().toLocaleString('zh-CN') });
+  setLocal('pc_comments', comments);
+
+  input.value = '';
+  const row = document.getElementById('commentRow-' + tid);
+  if (row) row.classList.remove('show');
+  renderLocalComments(tid);
+}
+
+function deleteLocalComment(idx, tid) {
+  if (!confirm('确定删除这条评论？')) return;
+  let comments = getLocal('pc_comments');
+  // 找到该帖子下第 idx 条评论并删除
+  const tidComments = comments.filter(c => c.tid === tid);
+  if (idx < tidComments.length) {
+    const target = tidComments[idx];
+    const globalIdx = comments.indexOf(target);
+    if (globalIdx >= 0) comments.splice(globalIdx, 1);
+  }
+  setLocal('pc_comments', comments);
+  renderLocalComments(tid);
+}
+
+function renderLocalComments(tid) {
+  const el = document.getElementById('localComments-' + tid);
+  if (!el) return;
+  const comments = getLocal('pc_comments').filter(c => c.tid === tid);
+
+  // 更新评论计数（爬取数 + 本地数）
+  const toggle = document.getElementById('toggle-' + tid);
+  if (toggle) {
+    const numSpan = toggle.querySelector('.reply-count-num');
+    if (numSpan) {
+      // 从 DOM 中的 reply-item 数（不含本地评论）来计算爬取数
+      const repliesList = toggle.nextElementSibling;
+      const scrapedItems = repliesList ? repliesList.querySelectorAll('.reply-item:not(.local)').length : 0;
+      numSpan.textContent = scrapedItems + comments.length;
+    }
+  }
+
+  // 隐藏/显示 "暂无评论"
+  const noReplies = document.getElementById('noReplies-' + tid);
+  const repliesList = toggle ? toggle.nextElementSibling : null;
+  const scrapedItems = repliesList ? repliesList.querySelectorAll('.reply-item:not(.local)').length : 0;
+  if (noReplies) {
+    noReplies.style.display = (scrapedItems + comments.length === 0) ? '' : 'none';
+  }
+
+  if (!comments.length) { el.innerHTML = ''; return; }
+  el.innerHTML = comments.map((c, i) => `
+    <div class="reply-item local">
+      <div class="ri-header">
+        <span class="ri-author" style="color:var(--green);">💬 我</span>
+        <span class="ri-time">${esc2(c.time)}</span>
+      </div>
+      <div class="ri-content">${esc2(c.content)}</div>
+      <button class="lc-del" onclick="deleteLocalComment(${i}, '${esc2(tid)}')" style="font-size:0.6rem;color:var(--text-weak);background:none;border:none;cursor:pointer;margin-top:4px;">删除</button>
+    </div>`).join('');
+}
+
+function refreshInteractionStates() {
+  document.querySelectorAll('.pc-interact-btn').forEach(btn => {
+    const tid = btn.dataset.tid;
+    if (btn.dataset.action === 'like') {
+      const baseCount = parseInt(btn.dataset.likeCount) || 0;
+      const liked = isPostLiked(tid);
+      btn.classList.toggle('liked', liked);
+      btn.textContent = '👍 点赞(' + (baseCount + (liked ? 1 : 0)) + ')';
+    } else if (btn.dataset.action === 'favorite') {
+      btn.classList.toggle('favorited', isPostFaved(tid));
+    }
+  });
+}
+
+function esc2(s) {
+  if (!s) return '';
+  const d = document.createElement('div');
+  d.textContent = String(s);
+  return d.innerHTML;
+}
+
+// ============ 帖子列表事件委托 ============
+document.getElementById('postList').addEventListener('click', function(e) {
+  const btn = e.target.closest('.pc-interact-btn');
+  if (!btn) return;
+  e.preventDefault();
+  const action = btn.dataset.action;
+  const tid = btn.dataset.tid;
+  const title = btn.dataset.title;
+  const author = btn.dataset.author;
+  const timeStr = btn.dataset.time;
+
+  if (action === 'like') {
+    toggleLike(tid, title, author, timeStr);
+  } else if (action === 'favorite') {
+    toggleFavPost(tid, title, author, timeStr);
+  } else if (action === 'comment') {
+    showCommentInput(tid);
+  }
+});
+
+// ============ 渲染帖子后恢复互动状态 ============
+const _origRenderPosts = renderPosts;
+renderPosts = function(posts) {
+  _origRenderPosts(posts);
+  // 恢复所有帖子的本地评论
+  posts.forEach(p => {
+    if (p.tid) renderLocalComments(p.tid);
+  });
+  refreshInteractionStates();
+};
+
+// ============ BDUSS 本地记忆 ============
+function initBduss() {
+  const input = document.getElementById('bdussInput');
+  if (!input) return;
+  // 页面加载时填入已保存的 BDUSS
+  const saved = localStorage.getItem('tieba_bduss');
+  if (saved) input.value = saved;
+  // 输入时自动保存
+  input.addEventListener('input', () => {
+    localStorage.setItem('tieba_bduss', input.value.trim());
+  });
+}
+
+function clearBduss() {
+  const input = document.getElementById('bdussInput');
+  if (input) input.value = '';
+  localStorage.removeItem('tieba_bduss');
+  const statusEl = document.getElementById('statusBar');
+  if (statusEl) {
+    statusEl.textContent = '已清除 BDUSS（将使用未登录模式，最多 20 帖）';
+    statusEl.style.color = 'var(--text-weak)';
+  }
+}
+
+// ============ 波浪动画 (JS rAF 驱动，无缝循环) ============
+(function(){
+  var waves = document.querySelectorAll('.bg-waves');
+  var speeds = [1/12, -1/14, 1/10];
+  function step(ts){
+    waves.forEach(function(el,i){
+      var dur = Math.abs(speeds[i]) * 1000 * 1000;
+      var raw = (ts % dur) / dur;
+      if (speeds[i] < 0) raw = 1 - raw;
+      el.style.transform = 'translateX(' + (-raw * 50) + '%)';
+    });
+    requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+})();
+
+// ============ 粒子系统 ============
+(function(){
+  var c = document.getElementById('particlesContainer');
+  if (!c) return;
+  var colors = ['#00FFA3','#00C870','#7B2FFD','#9B59B6','#5B21B6'];
+  var vw=window.innerWidth, vh=window.innerHeight;
+  var xMin=vw*0.35, xMax=vw*0.65, yMin=vh*0.25, yMax=vh*0.65;
+  function spawn(){
+    var p=document.createElement('span');
+    p.className='bg-particle';
+    var s=2+Math.random()*3, d=5+Math.random()*4;
+    p.style.cssText='left:'+(xMin+Math.random()*(xMax-xMin))+'px;top:'+(yMin+Math.random()*(yMax-yMin))+'px;width:'+s+'px;height:'+s+'px;background:'+colors[Math.floor(Math.random()*colors.length)]+';color:'+colors[Math.floor(Math.random()*colors.length)]+';animation-duration:'+d+'s;';
+    c.appendChild(p);
+    setTimeout(function(){ if(p.parentNode) p.parentNode.removeChild(p); }, d*1000+200);
+  }
+  for(var i=0;i<12;i++) setTimeout(function(){ spawn(); }, i*400);
+  setInterval(function(){ spawn(); }, 600+Math.random()*300);
+})();
+
+// ============ 初始化 ============
+initBduss();
+loadPosts();
+
+// 页面关闭时清理轮询
+window.addEventListener('beforeunload', () => {
+  if (pollTimer) clearInterval(pollTimer);
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,74 @@
+商品价格查询结果（中关村在线 · 按最新时间排序）
+================================================================
+查询商品：ddr5 16gx2 6000mhz
+查询时间：2026-07-18 21:05:42
+筛选/排序 URL：https://detail.zol.com.cn/memory/s11120/s8129/new.html
+价格说明：JD=京东实时价 | ZOL=参考价 | TM=天猫价
+================================================================
+
+共找到 16 条匹配商品（按最新上架时间排列）：
+
+1. 玖合星域 32GB(2×16GB) DDR5 6000
+   京东价：¥2759 ｜ 中关村参考价：¥639 ｜ 天猫价：无
+   链接：https://detail.zol.com.cn/memory/index2170727.shtml
+
+2. 威刚XPG 龙耀 D500G DDR5 6000 C26 32GB(16GBx2) 周同学联名 黑色双平台认证，一键超频，海力士Adie颗粒
+   京东价：¥4199 ｜ 中关村参考价：¥2139 ｜ 天猫价：无
+   链接：https://detail.zol.com.cn/memory/index2147151.shtml
+
+3. 威刚XPG 龙耀 D500G DDR5 6000 C26 32GB(16GBx2) 周同学联名 白色双平台认证，一键超频，海力士Adie颗粒
+   京东价：¥4199 ｜ 中关村参考价：¥2139 ｜ 天猫价：无
+   链接：https://detail.zol.com.cn/memory/index2147150.shtml
+
+4. 威刚XPG 威龙 D300 DDR5 6000 C30 TUF联名 32GB(16GBx2) 釉白intel/AMD 双平台认证，16G DDR5 6000，C30 海力士M-DIE
+   京东价：无 ｜ 中关村参考价：¥1919 ｜ 天猫价：无
+   链接：https://detail.zol.com.cn/memory/index2146891.shtml
+
+5. 威刚XPG 威龙 D300 DDR5 6000 C30 TUF联名 32GB(16GBx2) 酷黑intel/AMD 双平台认证，16G DDR5 6000，C30 海力士M-DIE
+   京东价：无 ｜ 中关村参考价：¥1919 ｜ 天猫价：无
+   链接：https://detail.zol.com.cn/memory/index2146889.shtml
+
+6. 芝奇皇家戟 EXPO版  DDR5 6000 32GB（2×16GB）银色AMD EXPO，皇家钻彩导光设计，铝合金散热片
+   京东价：¥4499 ｜ 中关村参考价：¥1399 ｜ 天猫价：无
+   链接：https://detail.zol.com.cn/memory/index2130169.shtml
+
+7. 雷克沙Ares战神之翼 DDR5 6000 32GB(16GB×2) C26 银色频率高达6000MT/s，CL26低时序，RGB神光同步
+   京东价：无 ｜ 中关村参考价：¥999 ｜ 天猫价：无
+   链接：https://detail.zol.com.cn/memory/index2116895.shtml
+
+8. 雷克沙Ares战神之翼 DDR5 6000 32GB(16GB×2) C26 黑色频率高达6000MT/s，CL26低时序，RGB神光同步
+   京东价：无 ｜ 中关村参考价：¥999 ｜ 天猫价：无
+   链接：https://detail.zol.com.cn/memory/index2116894.shtml
+
+9. 阿斯加特博拉琪Ⅱ代 DDR5 6000 32GB（2×16GB）超低时序，海力士颗粒，镜面电镀
+   京东价：无 ｜ 中关村参考价：¥859 ｜ 天猫价：无
+   链接：https://detail.zol.com.cn/memory/index2115760.shtml
+
+10. 雷克沙雷神之锤 DDR5 6000 32GB(16GBx2) CL30 白色海力士颗粒，双平台超频，强效散热
+   京东价：无 ｜ 中关村参考价：¥659 ｜ 天猫价：无
+   链接：https://detail.zol.com.cn/memory/index2115745.shtml
+
+11. 雷克沙雷神之锤 DDR5 6000 32GB(16GBx2) CL30 黑色海力士颗粒，双平台超频，强效散热
+   京东价：无 ｜ 中关村参考价：¥659 ｜ 天猫价：无
+   链接：https://detail.zol.com.cn/memory/index2115744.shtml
+
+12. 雷克沙雷神之锤 DDR5 6000 32GB(16GBx2) CL38 白色海力士颗粒，双平台超频，强效散热
+   京东价：无 ｜ 中关村参考价：¥639 ｜ 天猫价：无
+   链接：https://detail.zol.com.cn/memory/index2115743.shtml
+
+13. 雷克沙雷神之锤 DDR5 6000 32GB(16GBx2) CL38 黑色海力士颗粒，双平台超频，强效散热
+   京东价：无 ｜ 中关村参考价：¥639 ｜ 天猫价：无
+   链接：https://detail.zol.com.cn/memory/index2115742.shtml
+
+14. 雷克沙雷神之锤 DDR5 6000 32GB(16GBx2) CL32 白色海力士颗粒，双平台超频，强效散热
+   京东价：无 ｜ 中关村参考价：¥659 ｜ 天猫价：无
+   链接：https://detail.zol.com.cn/memory/index2115741.shtml
+
+15. 雷克沙Ares战神之翼 DDR5 6000 32GB(16GB×2) C28 银色
+   京东价：无 ｜ 中关村参考价：¥799 ｜ 天猫价：无
+   链接：https://detail.zol.com.cn/memory/index2115702.shtml
+
+16. 雷克沙Ares战神之翼 DDR5 6000 32GB(16GB×2) C28 黑色
+   京东价：无 ｜ 中关村参考价：¥799 ｜ 天猫价：无
+   链接：https://detail.zol.com.cn/memory/index2115701.shtml
+
