@@ -4,14 +4,14 @@
 
 ## 界面预览
 
-![Screenshot 1](demo/screenshot-1.png)
-![Screenshot 2](demo/screenshot-2.png)
-![Screenshot 3](demo/screenshot-3.png)
-![Screenshot 4](demo/screenshot-4.png)
+![截图1](https://github.com/kisszz666/ai-combud/blob/main/demo/screenshot-1.png?raw=true)
+![截图2](https://github.com/kisszz666/ai-combud/blob/main/demo/screenshot-2.png?raw=true)
+![截图3](https://github.com/kisszz666/ai-combud/blob/main/demo/screenshot-3.png?raw=true)
+![截图4](https://github.com/kisszz666/ai-combud/blob/main/demo/screenshot-4.png?raw=true)
 
 ## 演示视频
 
-![演示GIF](demo/demo.gif)
+![演示GIF](https://github.com/kisszz666/ai-combud/blob/main/demo/demo.gif?raw=true)
 
 > 📹 点击观看完整视频：[demo/demo.mp4](demo/demo.mp4)
 
